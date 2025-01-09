@@ -1,0 +1,14 @@
+query meQuery {
+  me {
+    id
+    name
+    email
+    username
+    createdAt
+    accounts {
+      provider
+      __typename
+    }
+    __typename
+  }
+}
