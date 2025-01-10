@@ -2,7 +2,7 @@
 
 import { AccessDenied, CredentialsSignin } from '@auth/core/errors'
 import { UpstashRedisAdapter } from '@auth/upstash-redis-adapter'
-import argon2 from 'argon2'
+import bcrypt from 'bcrypt'
 import { and, eq } from 'drizzle-orm'
 import { random } from 'lodash'
 import { cookies } from 'next/headers'
@@ -79,7 +79,7 @@ export const { handlers, auth } = NextAuth({
             throw new CredentialsSignin()
           }
 
-          const isValid = await argon2.verify(user.password, String(password))
+          const isValid = await bcrypt.compare(String(password), user.password)
 
           if (!isValid) {
             throw new CredentialsSignin()
@@ -105,7 +105,7 @@ export const { handlers, auth } = NextAuth({
             .values({
               username: String(username),
               name: String(username),
-              password: await argon2.hash(String(password)),
+              password: await bcrypt.hash(String(password), 10),
               updatedAt: new Date(),
             })
             .returning({
