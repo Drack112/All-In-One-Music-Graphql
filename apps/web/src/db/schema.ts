@@ -1,6 +1,6 @@
 import { init } from '@paralleldrive/cuid2'
-import { relations, sql } from 'drizzle-orm'
-import { integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 const createId = init({
   length: 14,

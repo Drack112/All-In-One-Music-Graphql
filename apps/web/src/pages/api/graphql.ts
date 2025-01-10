@@ -9,8 +9,7 @@ import { ErrorInterceptor } from '@/server/middleware/error-interceptor'
 import { Context } from '@/types'
 import { pick } from 'lodash'
 import { auth } from '@/auth'
-import { NextApiHandler, PageConfig } from 'next'
-import { parseBody } from 'next/dist/server/api-utils/node/parse-body'
+import { NextApiHandler } from 'next'
 import { UserResolver } from '@/server/schema/user/user-resolver'
 
 const schema = await buildSchema({
@@ -55,13 +54,6 @@ const graphql: NextApiHandler = async (req, res) => {
     res.status(200).end()
   }
 
-  const contentType = req.headers['content-type']
-
-  if (contentType && contentType.indexOf('multipart/form-data') > -1) {
-  } else {
-    req.body = await parseBody(req, '10mb')
-  }
-
   try {
     return await handler(req, res)
   } catch (e) {
@@ -70,10 +62,3 @@ const graphql: NextApiHandler = async (req, res) => {
 }
 
 export default graphql
-export const config: PageConfig = {
-  api: {
-    bodyParser: false,
-  },
-}
-
-export const maxDuration = 40

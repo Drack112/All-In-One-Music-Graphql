@@ -10,11 +10,10 @@ import * as v from 'valibot'
 
 import { meQuery, updateUserMutation } from '@/api'
 import { getError } from '@/utils/get-error'
-
-import { Button } from '../button'
-import { GithubIcon } from '../icons'
-import { Input } from '../input'
-import { Toast } from '../toast'
+import { Toast } from '@/components/toast'
+import { Input } from '@/components/input'
+import { GithubIcon } from '@/components/icons'
+import { Button } from '@/components/button'
 
 interface MyAccountModalProps {
   onClose?: () => void

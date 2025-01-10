@@ -1,5 +1,5 @@
 import { Menu } from '@/components/menu'
-import { Modal } from '@/components/modal/modal'
+import { ModalProvider } from '@/providers/modal-provider'
 import { Toaster } from 'sonner'
 import { Icon } from '@iconify/react'
 import { useLayoutState } from '@/store/use-layout-state'
@@ -39,7 +39,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         <Attribution />
         <div className='h-28' />
         <Toaster />
-        <Modal />
+        <ModalProvider />
       </div>
     </>
   )

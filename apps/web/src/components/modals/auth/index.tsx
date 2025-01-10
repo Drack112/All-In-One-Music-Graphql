@@ -7,9 +7,9 @@ import type { SubmitHandler } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 import { twMerge } from 'tailwind-merge'
 
-import { GithubIcon } from '../icons'
-import { Input } from '../input'
-import { WavesLoader } from '../loader'
+import { GithubIcon } from '../../icons'
+import { Input } from '../../input'
+import { WavesLoader } from '../../loader'
 
 type Inputs = {
   username: string

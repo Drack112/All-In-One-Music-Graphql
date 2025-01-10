@@ -122,9 +122,6 @@ export const { handlers, auth } = NextAuth({
     }),
   ],
   secret: process.env.AUTH_SECRET,
-  /*events: {
-    signIn: async (message) => {},
-  },*/
   callbacks: {
     session: ({ session, token }) => {
       if (session && token) {

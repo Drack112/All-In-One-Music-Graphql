@@ -8,9 +8,9 @@ import {
 } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Fragment } from 'react'
-import { Button } from '../button'
+import { Button } from '../components/button'
 
-export function Modal() {
+export function ModalProvider() {
   const isOpen = useModalStore((state) => state.isOpen)
   const content = useModalStore((state) => state.content)
   const closeModal = useModalStore((state) => state.closeModal)
