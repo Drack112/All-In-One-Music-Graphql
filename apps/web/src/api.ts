@@ -6,7 +6,13 @@ import { getBaseURL } from './utils/get-base-url'
 
 const gqlClient = new GraphQLClient(`${getBaseURL()}/api/graphql`)
 
-export const { meQuery, updateUserMutation } = getSdk(gqlClient)
+export const {
+  meQuery,
+  updateUserMutation,
+  userPlaylistsQuery,
+  addToPlaylistMutation,
+  getVideoInfoQuery,
+} = getSdk(gqlClient)
 
 export const queryClient = new QueryClient({
   defaultOptions: {

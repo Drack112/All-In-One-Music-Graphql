@@ -33,7 +33,14 @@ export type Scalars = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  addToPlaylist: Scalars["Boolean"]["output"];
   updateUser: UpdateUserOutput;
+};
+
+export type MutationAddToPlaylistArgs = {
+  playlistId: Scalars["ID"]["input"];
+  songIds: InputMaybe<Array<Scalars["ID"]["input"]>>;
+  songs: InputMaybe<Array<SongInput>>;
 };
 
 export type MutationUpdateUserArgs = {
@@ -42,8 +49,13 @@ export type MutationUpdateUserArgs = {
 
 export type Query = {
   __typename?: "Query";
+  getVideoInfo: Array<SongVideo>;
   me: User;
   userPlaylists: Array<Playlist>;
+};
+
+export type QueryGetVideoInfoArgs = {
+  query: Scalars["String"]["input"];
 };
 
 export type Account = {
@@ -59,6 +71,22 @@ export type Playlist = {
   songs: Maybe<Array<UserSong>>;
   type: Maybe<Scalars["Int"]["output"]>;
   user: Maybe<User>;
+};
+
+export type SongInput = {
+  album: InputMaybe<Scalars["String"]["input"]>;
+  artist: Scalars["String"]["input"];
+  songUrl: InputMaybe<Scalars["String"]["input"]>;
+  title: Scalars["String"]["input"];
+};
+
+export type SongVideo = {
+  __typename?: "songVideo";
+  artist: Scalars["String"]["output"];
+  thumbnailUrl: Scalars["String"]["output"];
+  title: Scalars["String"]["output"];
+  videoId: Scalars["String"]["output"];
+  videoUrl: Scalars["String"]["output"];
 };
 
 export type UpdateUserOutput = {
@@ -105,6 +133,33 @@ export type UserSong = {
   year: Maybe<Scalars["String"]["output"]>;
 };
 
+export type AddToPlaylistMutationMutationVariables = Exact<{
+  playlistId: Scalars["ID"]["input"];
+  songIds: InputMaybe<Array<Scalars["ID"]["input"]> | Scalars["ID"]["input"]>;
+  songs: InputMaybe<Array<SongInput> | SongInput>;
+}>;
+
+export type AddToPlaylistMutationMutation = {
+  __typename?: "Mutation";
+  addToPlaylist: boolean;
+};
+
+export type GetVideoInfoQueryQueryVariables = Exact<{
+  query: Scalars["String"]["input"];
+}>;
+
+export type GetVideoInfoQueryQuery = {
+  __typename?: "Query";
+  getVideoInfo: Array<{
+    __typename: "songVideo";
+    artist: string;
+    title: string;
+    videoId: string;
+    videoUrl: string;
+    thumbnailUrl: string;
+  }>;
+};
+
 export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type MeQueryQuery = {
@@ -148,6 +203,27 @@ export type UserPlaylistsQueryQuery = {
   }>;
 };
 
+export const AddToPlaylistMutationDocument = gql`
+  mutation addToPlaylistMutation(
+    $playlistId: ID!
+    $songIds: [ID!]
+    $songs: [songInput!]
+  ) {
+    addToPlaylist(playlistId: $playlistId, songIds: $songIds, songs: $songs)
+  }
+`;
+export const GetVideoInfoQueryDocument = gql`
+  query getVideoInfoQuery($query: String!) {
+    getVideoInfo(query: $query) {
+      artist
+      title
+      videoId
+      videoUrl
+      thumbnailUrl
+      __typename
+    }
+  }
+`;
 export const MeQueryDocument = gql`
   query meQuery {
     me {
@@ -205,6 +281,38 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
+    addToPlaylistMutation(
+      variables: AddToPlaylistMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<AddToPlaylistMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<AddToPlaylistMutationMutation>(
+            AddToPlaylistMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "addToPlaylistMutation",
+        "mutation",
+        variables,
+      );
+    },
+    getVideoInfoQuery(
+      variables: GetVideoInfoQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<GetVideoInfoQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<GetVideoInfoQueryQuery>(
+            GetVideoInfoQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "getVideoInfoQuery",
+        "query",
+        variables,
+      );
+    },
     meQuery(
       variables?: MeQueryQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,

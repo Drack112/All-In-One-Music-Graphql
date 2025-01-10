@@ -13,9 +13,10 @@ import { ErrorInterceptor } from '@/server/middleware/error-interceptor'
 import { UserResolver } from '@/server/schema/user/user-resolver'
 import type { Context } from '@/types'
 import { PlaylistResolver } from '@/server/schema/playlist/playlist-resolver'
+import { SongResolver } from '@/server/schema/song/song-resolver'
 
 const schema = await buildSchema({
-  resolvers: [UserResolver, PlaylistResolver],
+  resolvers: [UserResolver, PlaylistResolver, SongResolver],
   globalMiddlewares: [ErrorInterceptor],
 })
 
