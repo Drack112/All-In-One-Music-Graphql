@@ -1,7 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-unnecessary-condition */
 
 import { LibsqlError } from '@libsql/client'
-import argon2 from 'argon2'
+import bcrypt from 'bcrypt'
 import { eq, getTableColumns } from 'drizzle-orm'
 import {
   Arg,
@@ -83,7 +83,7 @@ export class UserResolver {
           .from(Users)
           .where(eq(Users.id, session.user.id))
 
-        const isValid = await argon2.verify(
+        const isValid = await bcrypt.compare(
           String(dbUser.password),
           user.password
         )
@@ -93,7 +93,7 @@ export class UserResolver {
         }
 
         return {
-          password: await argon2.hash(String(user.newPassword)),
+          password: await bcrypt.hash(String(user.newPassword), 10),
         }
       }
       return {}
