@@ -57,6 +57,76 @@ export class UserResolver {
     }
   }
 
+  @Mutation(() => UpdateUserOutput)
+  async updateUser(
+    @Ctx() ctx: Context,
+    @Arg('user', () => UserInput) user: UserInput
+  ): Promise<UpdateUserOutput> {
+    const session = ctx.session
+
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+
+    if (!user.username) {
+      throw new Error('Username is required')
+    }
+
+    const getNewPassword = async () => {
+      if (user.password && user.newPassword) {
+        const { password } = getTableColumns(Users)
+
+        const [dbUser] = await db
+          .select({ password })
+          .from(Users)
+          .where(eq(Users.id, session.user.id))
+
+        const isValid = await argon2.verify(
+          String(dbUser.password),
+          user.password
+        )
+
+        if (!isValid) {
+          throw new Error('Invalid password')
+        }
+
+        return {
+          password: await argon2.hash(String(user.newPassword)),
+        }
+      }
+      return {}
+    }
+
+    const updatedAt = new Date()
+
+    try {
+      await db
+        .update(Users)
+        .set({
+          name: user.name,
+          username: user.username,
+          email: user.email || null,
+          updatedAt,
+          ...(await getNewPassword()),
+        })
+        .where(eq(Users.id, session.user.id))
+    } catch (error) {
+      if (error instanceof LibsqlError) {
+        if (error.code === dbErrorCodes.SQLITE_CONSTRAINT_UNIQUE) {
+          throw new Error('Credentials not available or already taken')
+        }
+      }
+      throw error
+    }
+
+    return {
+      username: user.username,
+      name: user.name,
+      email: user.email ?? undefined,
+      updatedAt,
+    }
+  }
+
   @FieldResolver(() => Boolean)
   async hasPassword(@Root() user: User): Promise<boolean> {
     const { password } = getTableColumns(Users)

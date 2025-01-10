@@ -31,6 +31,15 @@ export type Scalars = {
   Float: { input: number; output: number };
 };
 
+export type Mutation = {
+  __typename?: "Mutation";
+  updateUser: UpdateUserOutput;
+};
+
+export type MutationUpdateUserArgs = {
+  user: UserInput;
+};
+
 export type Query = {
   __typename?: "Query";
   me: User;
@@ -39,6 +48,14 @@ export type Query = {
 export type Account = {
   __typename?: "account";
   provider: Scalars["String"]["output"];
+};
+
+export type UpdateUserOutput = {
+  __typename?: "updateUserOutput";
+  email: Maybe<Scalars["String"]["output"]>;
+  name: Maybe<Scalars["String"]["output"]>;
+  updatedAt: Scalars["String"]["output"];
+  username: Scalars["String"]["output"];
 };
 
 export type User = {
@@ -51,6 +68,14 @@ export type User = {
   name: Maybe<Scalars["String"]["output"]>;
   updatedAt: Scalars["String"]["output"];
   username: Scalars["String"]["output"];
+};
+
+export type UserInput = {
+  email: InputMaybe<Scalars["String"]["input"]>;
+  name: InputMaybe<Scalars["String"]["input"]>;
+  newPassword: InputMaybe<Scalars["String"]["input"]>;
+  password: InputMaybe<Scalars["String"]["input"]>;
+  username: Scalars["String"]["input"];
 };
 
 export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -69,6 +94,21 @@ export type MeQueryQuery = {
   };
 };
 
+export type UpdateUserMutationMutationVariables = Exact<{
+  user: UserInput;
+}>;
+
+export type UpdateUserMutationMutation = {
+  __typename?: "Mutation";
+  updateUser: {
+    __typename: "updateUserOutput";
+    name: string | null;
+    username: string;
+    email: string | null;
+    updatedAt: string;
+  };
+};
+
 export const MeQueryDocument = gql`
   query meQuery {
     me {
@@ -82,6 +122,17 @@ export const MeQueryDocument = gql`
         provider
         __typename
       }
+      __typename
+    }
+  }
+`;
+export const UpdateUserMutationDocument = gql`
+  mutation updateUserMutation($user: userInput!) {
+    updateUser(user: $user) {
+      name
+      username
+      email
+      updatedAt
       __typename
     }
   }
@@ -118,6 +169,22 @@ export function getSdk(
           }),
         "meQuery",
         "query",
+        variables,
+      );
+    },
+    updateUserMutation(
+      variables: UpdateUserMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<UpdateUserMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<UpdateUserMutationMutation>(
+            UpdateUserMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "updateUserMutation",
+        "mutation",
         variables,
       );
     },

@@ -5,7 +5,7 @@ import { getSdk } from 'music-shared'
 
 const gqlClient = new GraphQLClient(`${getBaseURL()}/api/graphql`)
 
-export const { meQuery } = getSdk(gqlClient)
+export const { meQuery, updateUserMutation } = getSdk(gqlClient)
 
 export const queryClient = new QueryClient({
   defaultOptions: {
