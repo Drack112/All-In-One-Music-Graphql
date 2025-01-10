@@ -21,7 +21,6 @@
         "access": "public"
     },
     "repository": {
-        "type": "git",
         "directory": "packages/shared"
     },
     "devDependencies": {

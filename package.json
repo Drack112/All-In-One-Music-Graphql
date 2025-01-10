@@ -7,8 +7,6 @@
     "build": "nx build music-web",
     "start": "nx start music-web",
     "lint": "nx lint music-web",
-    "release": "changeset",
-    "release:publish": "pnpm shared build && changeset publish --provenance --access public",
     "gen": "graphql-codegen",
     "update": "ncu -i"
   },
