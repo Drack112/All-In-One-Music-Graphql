@@ -1,7 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-unnecessary-condition */
 
 import { LibsqlError } from '@libsql/client'
-import bcrypt from 'bcrypt'
+import argon2 from 'argon2'
 import { eq, getTableColumns } from 'drizzle-orm'
 import {
   Arg,
@@ -62,7 +62,7 @@ export class UserResolver {
   @Mutation(() => UpdateUserOutput)
   async updateUser(
     @Ctx() ctx: Context,
-    @Arg('user', () => UserInput) user: UserInput
+    @Arg('user') user: UserInput
   ): Promise<UpdateUserOutput> {
     const session = ctx.session
 
@@ -83,7 +83,7 @@ export class UserResolver {
           .from(Users)
           .where(eq(Users.id, session.user.id))
 
-        const isValid = await bcrypt.compare(
+        const isValid = await argon2.verify(
           String(dbUser.password),
           user.password
         )
@@ -93,7 +93,7 @@ export class UserResolver {
         }
 
         return {
-          password: await bcrypt.hash(String(user.newPassword), 10),
+          password: await argon2.hash(String(user.newPassword)),
         }
       }
       return {}
@@ -132,6 +132,7 @@ export class UserResolver {
   @FieldResolver(() => Boolean)
   async hasPassword(@Root() user: User): Promise<boolean> {
     const { password } = getTableColumns(Users)
+
     const [dbUser] = await db
       .select({ password })
       .from(Users)

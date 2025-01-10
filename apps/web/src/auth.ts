@@ -2,7 +2,7 @@
 
 import { AccessDenied, CredentialsSignin } from '@auth/core/errors'
 import { UpstashRedisAdapter } from '@auth/upstash-redis-adapter'
-import bcrypt from 'bcrypt'
+import argon2 from 'argon2'
 import { and, eq } from 'drizzle-orm'
 import { random } from 'lodash'
 import { cookies } from 'next/headers'
@@ -20,7 +20,7 @@ const validateCsrfToken = async (tokenValue: string) => {
       ? '__Host-authjs.csrf-token'
       : 'authjs.csrf-token'
   )
-  const csrfValue = csrfCookie?.value.split('|').at(0)
+  const csrfValue = csrfCookie?.value?.split('|').at(0)
 
   return csrfValue === tokenValue
 }
@@ -75,11 +75,11 @@ export const { handlers, auth } = NextAuth({
             .from(Users)
             .where(eq(Users.username, String(username)))
 
-          if (!user.password) {
+          if (!user?.password) {
             throw new CredentialsSignin()
           }
 
-          const isValid = await bcrypt.compare(String(password), user.password)
+          const isValid = await argon2.verify(user.password, String(password))
 
           if (!isValid) {
             throw new CredentialsSignin()
@@ -105,7 +105,7 @@ export const { handlers, auth } = NextAuth({
             .values({
               username: String(username),
               name: String(username),
-              password: await bcrypt.hash(String(password), 10),
+              password: await argon2.hash(String(password)),
               updatedAt: new Date(),
             })
             .returning({
@@ -124,6 +124,9 @@ export const { handlers, auth } = NextAuth({
     }),
   ],
   secret: process.env.AUTH_SECRET,
+  /*events: {
+    signIn: async (message) => {},
+  },*/
   callbacks: {
     session: ({ session, token }) => {
       if (session && token) {
