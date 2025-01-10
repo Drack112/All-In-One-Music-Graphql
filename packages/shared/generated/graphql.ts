@@ -46,6 +46,7 @@ export type User = {
   accounts: Array<Account>;
   createdAt: Scalars["String"]["output"];
   email: Maybe<Scalars["String"]["output"]>;
+  hasPassword: Scalars["Boolean"]["output"];
   id: Scalars["ID"]["output"];
   name: Maybe<Scalars["String"]["output"]>;
   updatedAt: Scalars["String"]["output"];
@@ -63,6 +64,7 @@ export type MeQueryQuery = {
     email: string | null;
     username: string;
     createdAt: string;
+    hasPassword: boolean;
     accounts: Array<{ __typename: "account"; provider: string }>;
   };
 };
@@ -75,6 +77,7 @@ export const MeQueryDocument = gql`
       email
       username
       createdAt
+      hasPassword
       accounts {
         provider
         __typename

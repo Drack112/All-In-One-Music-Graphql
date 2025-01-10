@@ -5,6 +5,7 @@ query meQuery {
     email
     username
     createdAt
+    hasPassword
     accounts {
       provider
       __typename

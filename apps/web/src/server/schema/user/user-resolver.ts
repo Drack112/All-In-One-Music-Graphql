@@ -56,4 +56,15 @@ export class UserResolver {
       })),
     }
   }
+
+  @FieldResolver(() => Boolean)
+  async hasPassword(@Root() user: User): Promise<boolean> {
+    const { password } = getTableColumns(Users)
+    const [dbUser] = await db
+      .select({ password })
+      .from(Users)
+      .where(eq(Users.id, user.id))
+
+    return !!dbUser.password
+  }
 }
