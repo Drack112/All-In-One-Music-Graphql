@@ -1,4 +1,22 @@
-import { Field, Int, ObjectType } from 'type-graphql'
+import { Field, InputType, Int, ObjectType } from 'type-graphql'
+
+@ObjectType('songVideo')
+export class SongVideo {
+  @Field()
+  title: string
+
+  @Field()
+  artist!: string
+
+  @Field()
+  videoId!: string
+
+  @Field()
+  videoUrl!: string
+
+  @Field()
+  thumbnailUrl?: string
+}
 
 @ObjectType('song')
 export class Song {
@@ -6,7 +24,7 @@ export class Song {
   title: string
 
   @Field()
-  artist: string
+  artist!: string
 
   @Field({ nullable: true })
   album?: string
@@ -24,9 +42,8 @@ export class Song {
   genre?: string
 
   @Field(() => Int, { nullable: true })
-  playlistId: number | null
+  playlistId?: number | null
 }
-
 @ObjectType('userSong')
 export class UserSong extends Song {
   @Field()
@@ -40,4 +57,19 @@ export class UserSong extends Song {
 
   @Field(() => String, { nullable: true })
   createdAt?: Date
+}
+
+@InputType('songInput')
+export class SongInput {
+  @Field()
+  title: string
+
+  @Field()
+  artist: string
+
+  @Field({ nullable: true })
+  album?: string
+
+  @Field({ nullable: true })
+  songUrl?: string
 }
