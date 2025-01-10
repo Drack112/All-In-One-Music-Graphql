@@ -18,6 +18,7 @@ import { useLayoutState } from '@/store/use-layout-state'
 import { useModalStore } from '@/store/use-modal'
 
 import { AuthModal } from '../auth/auth-modal'
+import { MyAccountModal } from '../modals/my-account-modal'
 import { Skeleton } from '../skeleton'
 
 interface MenuItemProps {
@@ -101,6 +102,7 @@ const DynamicPopover = dynamic(
     ssr: false,
   }
 )
+
 export const Menu = () => {
   const setIsOpen = useGlobalSearchStore((state) => state.setIsOpen)
   const openModal = useModalStore((state) => state.openModal)
@@ -142,11 +144,7 @@ export const Menu = () => {
               label: 'My Account',
               onClick: () => {
                 openModal({
-                  content: (
-                    <>
-                      <div>Hello</div>
-                    </>
-                  ),
+                  content: <MyAccountModal onClose={closeModal} />,
                   title: 'My Account',
                 })
               },
@@ -240,7 +238,9 @@ export const Menu = () => {
                   exit='hidden'
                   animate='show'
                   variants={navAnim}
-                ></motion.div>
+                >
+                  <div>Menu playlist</div>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
