@@ -10,7 +10,7 @@ module.exports = {
       '**/generated/*',
     ],
     service: {
-      name: 'elevenfm',
+      name: 'all-in-one-graphql-music',
       // url: ' http://localhost:4000/___graphql',
       localSchemaFile: path.resolve(__dirname, './graphql.schema.json'),
       // skipSSLValidation: true,
