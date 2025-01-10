@@ -1,35 +1,50 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2018",
     "skipLibCheck": true,
+    "checkJs": true,
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "alwaysStrict": true,
+    "lib": ["dom", "dom.iterable", "es2022", "ESNext"],
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "allowJs": true,
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    ]
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "tailwind.config.ts",
+    "postcss.config.js",
+    "src",
+    "next.config.ts",
+    "codegen.yml",
+    "codegen.ts",
+    "eslint.config.mjs",
+    "apollo.config.js",
+    "prettier.config.mjs",
     ".next/types/**/*.ts",
-    "apollo.config.js"
+    "drizzle.config.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".next"]
 }
