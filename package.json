@@ -12,7 +12,6 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@changesets/cli": "^2.27.3",
     "@graphql-codegen/add": "^5.0.2",
     "@graphql-codegen/cli": "^5.0.2",
     "@graphql-codegen/introspection": "^4.0.3",
