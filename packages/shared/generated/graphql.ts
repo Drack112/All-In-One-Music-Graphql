@@ -43,11 +43,22 @@ export type MutationUpdateUserArgs = {
 export type Query = {
   __typename?: "Query";
   me: User;
+  userPlaylists: Array<Playlist>;
 };
 
 export type Account = {
   __typename?: "account";
   provider: Scalars["String"]["output"];
+};
+
+export type Playlist = {
+  __typename?: "playlist";
+  createdAt: Maybe<Scalars["String"]["output"]>;
+  id: Scalars["ID"]["output"];
+  name: Scalars["String"]["output"];
+  songs: Maybe<Array<UserSong>>;
+  type: Maybe<Scalars["Int"]["output"]>;
+  user: Maybe<User>;
 };
 
 export type UpdateUserOutput = {
@@ -76,6 +87,22 @@ export type UserInput = {
   newPassword: InputMaybe<Scalars["String"]["input"]>;
   password: InputMaybe<Scalars["String"]["input"]>;
   username: Scalars["String"]["input"];
+};
+
+export type UserSong = {
+  __typename?: "userSong";
+  album: Maybe<Scalars["String"]["output"]>;
+  artist: Scalars["String"]["output"];
+  createdAt: Maybe<Scalars["String"]["output"]>;
+  duration: Maybe<Scalars["String"]["output"]>;
+  genre: Maybe<Scalars["String"]["output"]>;
+  id: Scalars["String"]["output"];
+  playcount: Maybe<Scalars["String"]["output"]>;
+  playlistId: Maybe<Scalars["Int"]["output"]>;
+  rank: Maybe<Scalars["String"]["output"]>;
+  songUrl: Maybe<Scalars["String"]["output"]>;
+  title: Scalars["String"]["output"];
+  year: Maybe<Scalars["String"]["output"]>;
 };
 
 export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
@@ -109,6 +136,18 @@ export type UpdateUserMutationMutation = {
   };
 };
 
+export type UserPlaylistsQueryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type UserPlaylistsQueryQuery = {
+  __typename?: "Query";
+  userPlaylists: Array<{
+    __typename?: "playlist";
+    id: string;
+    name: string;
+    createdAt: string | null;
+  }>;
+};
+
 export const MeQueryDocument = gql`
   query meQuery {
     me {
@@ -134,6 +173,15 @@ export const UpdateUserMutationDocument = gql`
       email
       updatedAt
       __typename
+    }
+  }
+`;
+export const UserPlaylistsQueryDocument = gql`
+  query userPlaylistsQuery {
+    userPlaylists {
+      id
+      name
+      createdAt
     }
   }
 `;
@@ -185,6 +233,22 @@ export function getSdk(
           ),
         "updateUserMutation",
         "mutation",
+        variables,
+      );
+    },
+    userPlaylistsQuery(
+      variables?: UserPlaylistsQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<UserPlaylistsQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<UserPlaylistsQueryQuery>(
+            UserPlaylistsQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "userPlaylistsQuery",
+        "query",
         variables,
       );
     },
