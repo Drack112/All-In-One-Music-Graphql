@@ -1,7 +1,8 @@
+import { Icon } from '@iconify/react'
+import { Toaster } from 'sonner'
+
 import { Menu } from '@/components/menu'
 import { ModalProvider } from '@/providers/modal-provider'
-import { Toaster } from 'sonner'
-import { Icon } from '@iconify/react'
 import { useLayoutState } from '@/store/use-layout-state'
 
 const Attribution = () => {

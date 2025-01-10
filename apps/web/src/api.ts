@@ -1,7 +1,8 @@
 import { QueryClient } from '@tanstack/react-query'
 import { GraphQLClient } from 'graphql-request'
-import { getBaseURL } from './utils/get-base-url'
 import { getSdk } from 'music-shared'
+
+import { getBaseURL } from './utils/get-base-url'
 
 const gqlClient = new GraphQLClient(`${getBaseURL()}/api/graphql`)
 

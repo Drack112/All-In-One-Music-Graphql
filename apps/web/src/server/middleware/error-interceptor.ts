@@ -1,5 +1,7 @@
-import { Context } from '@/types'
-import { MiddlewareFn } from 'type-graphql'
+import type { MiddlewareFn } from 'type-graphql'
+
+import type { Context } from '@/types'
+
 import { logger } from '../logger'
 
 export const ErrorInterceptor: MiddlewareFn<Context> = async (_, next) => {

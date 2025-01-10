@@ -33,7 +33,7 @@ export const AuthModal = (props: AuthModalProps) => {
     mutationFn: (data: Inputs) =>
       signIn(providers.data?.credentials.id, {
         ...data,
-        callbackUrl: pathname?.includes('/auth') ? '/' : pathname || '/',
+        callbackUrl: pathname.includes('/auth') ? '/' : pathname || '/',
         redirect: false,
         action: authType,
       }),
@@ -174,9 +174,7 @@ export const AuthModal = (props: AuthModalProps) => {
             key={providers.data?.github.id}
             onClick={() =>
               signIn(providers.data?.github.id, {
-                callbackUrl: pathname?.includes('/auth')
-                  ? '/'
-                  : pathname || '/',
+                callbackUrl: pathname.includes('/auth') ? '/' : pathname || '/',
               })
             }
             className={twMerge(

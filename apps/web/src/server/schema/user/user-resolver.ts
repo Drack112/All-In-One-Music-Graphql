@@ -1,3 +1,5 @@
+/* eslint-disable  @typescript-eslint/no-unnecessary-condition */
+
 import { LibsqlError } from '@libsql/client'
 import argon2 from 'argon2'
 import { eq, getTableColumns } from 'drizzle-orm'

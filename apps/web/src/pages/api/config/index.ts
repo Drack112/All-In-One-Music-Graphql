@@ -1,4 +1,4 @@
-import { PageConfig } from 'next'
+import type { PageConfig } from 'next'
 
 export const config: PageConfig = {
   api: {

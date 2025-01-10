@@ -1,3 +1,5 @@
+/* eslint-disable  @typescript-eslint/no-unnecessary-condition */
+
 import { AccessDenied, CredentialsSignin } from '@auth/core/errors'
 import { UpstashRedisAdapter } from '@auth/upstash-redis-adapter'
 import argon2 from 'argon2'
@@ -18,7 +20,7 @@ const validateCsrfToken = async (tokenValue: string) => {
       ? '__Host-authjs.csrf-token'
       : 'authjs.csrf-token'
   )
-  const csrfValue = csrfCookie?.value?.split('|').at(0)
+  const csrfValue = csrfCookie?.value.split('|').at(0)
 
   return csrfValue === tokenValue
 }
@@ -73,7 +75,7 @@ export const { handlers, auth } = NextAuth({
             .from(Users)
             .where(eq(Users.username, String(username)))
 
-          if (!user?.password) {
+          if (!user.password) {
             throw new CredentialsSignin()
           }
 

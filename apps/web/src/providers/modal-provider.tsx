@@ -1,4 +1,3 @@
-import { useModalStore } from '@/store/use-modal'
 import {
   Dialog,
   DialogPanel,
@@ -8,6 +7,9 @@ import {
 } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Fragment } from 'react'
+
+import { useModalStore } from '@/store/use-modal'
+
 import { Button } from '../components/button'
 
 export function ModalProvider() {

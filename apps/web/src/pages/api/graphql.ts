@@ -4,13 +4,14 @@ import { ApolloServer } from '@apollo/server'
 import { ApolloServerPluginCacheControl } from '@apollo/server/plugin/cacheControl'
 import responseCachePlugin from '@apollo/server-plugin-response-cache'
 import { startServerAndCreateNextHandler } from '@as-integrations/next'
-import { buildSchema } from 'type-graphql'
-import { ErrorInterceptor } from '@/server/middleware/error-interceptor'
-import { Context } from '@/types'
 import { pick } from 'lodash'
+import type { NextApiHandler } from 'next'
+import { buildSchema } from 'type-graphql'
+
 import { auth } from '@/auth'
-import { NextApiHandler } from 'next'
+import { ErrorInterceptor } from '@/server/middleware/error-interceptor'
 import { UserResolver } from '@/server/schema/user/user-resolver'
+import type { Context } from '@/types'
 
 const schema = await buildSchema({
   resolvers: [UserResolver],

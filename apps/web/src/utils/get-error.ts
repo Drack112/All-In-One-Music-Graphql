@@ -1,4 +1,4 @@
-import { ClientError } from 'graphql-request'
+import type { ClientError } from 'graphql-request'
 import { truncate } from 'lodash'
 
 export const getError = (error: ClientError | null) => {
@@ -6,7 +6,7 @@ export const getError = (error: ClientError | null) => {
     return ''
   }
 
-  if (error.response?.errors) {
+  if (error.response.errors) {
     return error.response.errors[0].message
   }
 

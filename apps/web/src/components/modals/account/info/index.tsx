@@ -9,11 +9,11 @@ import { toast } from 'sonner'
 import * as v from 'valibot'
 
 import { meQuery, updateUserMutation } from '@/api'
-import { getError } from '@/utils/get-error'
-import { Toast } from '@/components/toast'
-import { Input } from '@/components/input'
-import { GithubIcon } from '@/components/icons'
 import { Button } from '@/components/button'
+import { GithubIcon } from '@/components/icons'
+import { Input } from '@/components/input'
+import { Toast } from '@/components/toast'
+import { getError } from '@/utils/get-error'
 
 interface MyAccountModalProps {
   onClose?: () => void
@@ -79,14 +79,14 @@ export const MyAccountModal = (props: MyAccountModalProps) => {
   const session = useSession()
 
   const me = useQuery({
-    queryKey: ['me', session.data?.user?.id],
+    queryKey: ['me', session.data?.user.id],
     queryFn: () => meQuery(),
-    enabled: !!session.data?.user?.id,
+    enabled: !!session.data?.user.id,
     staleTime: Infinity,
   })
 
   const updateUser = useMutation({
-    mutationKey: ['updateUser', session.data?.user?.id],
+    mutationKey: ['updateUser', session.data?.user.id],
     mutationFn: updateUserMutation,
     onError: (err: ClientError) => err,
   })

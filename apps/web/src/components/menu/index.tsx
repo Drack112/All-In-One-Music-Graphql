@@ -8,14 +8,13 @@ import type { Variants } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import { signOut, useSession } from 'next-auth/react'
-import React from 'react'
 
 import { useGlobalSearchStore } from '@/store/use-global-search'
 import { useLayoutState } from '@/store/use-layout-state'
 import { useModalStore } from '@/store/use-modal'
 
-import { AuthModal } from '../modals/auth'
 import { MyAccountModal } from '../modals/account/info'
+import { AuthModal } from '../modals/auth'
 import { Skeleton } from '../skeleton'
 import { MenuItem } from './item'
 
@@ -90,10 +89,8 @@ export const Menu = () => {
             {
               label: 'Sign Out',
               onClick: async () => {
-                if (session.status === 'authenticated') {
-                  await signOut({ redirect: false })
-                  return
-                }
+                await signOut({ redirect: false })
+                return
               },
               icon: (
                 <ArrowLeftStartOnRectangleIcon className='mr-2 h-5 shrink-0' />
