@@ -4,6 +4,9 @@ import { CacheControl } from '../cache-control'
 import { Song } from '../song/song'
 import { lastFM } from '@/server/modules/lastfm'
 import { audioDB } from '@/server/modules/audiodb/audiodb'
+import { compact, find, isEmpty, map, orderBy, toLower } from 'lodash'
+import { Album } from '../album/album'
+import { getCoverImage } from '@/utils/get-cover-image'
 
 @Resolver(Artist)
 export class ArtistResolver {
@@ -95,5 +98,97 @@ export class ArtistResolver {
     const artists = searchArtistResponse.data.results?.artistmatches?.artist
 
     return artists?.map((artist) => artist.name) || []
+  }
+
+  @Query(() => [Album], { nullable: true })
+  @CacheControl({ maxAge: 60 * 60 * 24 * 7 })
+  async getAlbums(
+    @Arg('artist') artist: string,
+    @Arg('limit', () => Int, { nullable: true, defaultValue: 10 })
+    limit: number,
+    @Arg('page', () => Int, { nullable: true }) page?: number
+  ): Promise<Album[]> {
+    const getAlbumsByArtist = await audioDB.getAlbumsByArtist({ artist })
+
+    const baseAlbums = getAlbumsByArtist.data.album
+
+    const getTopAlbums = await lastFM.getTopAlbums({ artist, limit, page })
+
+    const fallbackAlbums = getTopAlbums.data.topalbums?.album
+
+    if (!fallbackAlbums && !baseAlbums) {
+      return []
+    }
+
+    const albums = compact(
+      map(fallbackAlbums, (fallbackAlbum) => {
+        try {
+          const albumArtistName = fallbackAlbum?.artist.name
+
+          if (
+            isEmpty(fallbackAlbum.name) ||
+            fallbackAlbum.name === '(null)' ||
+            fallbackAlbum.name === 'undefined'
+          ) {
+            return undefined
+          }
+
+          const matchedAlbum = find(
+            baseAlbums,
+            (baseAlbum) =>
+              toLower(baseAlbum?.strAlbum) == toLower(fallbackAlbum?.name)
+          )
+
+          const coverImage =
+            matchedAlbum?.strAlbumThumb || getCoverImage(fallbackAlbum?.image)
+
+          const description =
+            matchedAlbum?.strDescription || matchedAlbum?.strDescriptionEN // || albumInfo?.wiki?.content
+
+          return {
+            artist: albumArtistName,
+            coverImage,
+            description,
+            name: fallbackAlbum.name,
+            genre: matchedAlbum?.strGenre,
+            year: matchedAlbum?.intYearReleased.toString(),
+            albumId: matchedAlbum?.idAlbum,
+          } satisfies Album
+        } catch {
+          return undefined
+        }
+      })
+    )
+
+    const missingAlbums = (baseAlbums ?? [])
+      .filter(
+        (baseAlbum) =>
+          !albums.find(
+            (album) =>
+              album.name.toLowerCase() === baseAlbum.strAlbum.toLowerCase()
+          )
+      )
+      .map(
+        (baseAlbum) =>
+          ({
+            artist: baseAlbum.strArtist,
+            coverImage: baseAlbum.strAlbumThumb,
+            description: baseAlbum.strDescription,
+            name: baseAlbum.strAlbum,
+            genre: baseAlbum.strGenre,
+            year: baseAlbum.intYearReleased.toString(),
+            albumId: baseAlbum.idAlbum,
+          }) satisfies Album
+      )
+
+    const albumsSorted = orderBy(
+      albums.concat(missingAlbums),
+      [
+        (item) => (item.year ? Number(item.year) : 0),
+        (item) => (item.coverImage?.length ? 1 : 2),
+      ],
+      ['desc', 'asc']
+    )
+    return albumsSorted
   }
 }

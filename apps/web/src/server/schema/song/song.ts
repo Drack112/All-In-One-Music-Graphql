@@ -85,3 +85,15 @@ export class SongLyrics {
   @Field()
   lyrics?: string
 }
+
+@ObjectType('songAlbum')
+export class SongAlbum {
+  @Field()
+  title: string
+
+  @Field()
+  artist!: string
+
+  @Field()
+  coverUrl?: string
+}

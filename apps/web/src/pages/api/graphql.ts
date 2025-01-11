@@ -15,9 +15,16 @@ import type { Context } from '@/types'
 import { PlaylistResolver } from '@/server/schema/playlist/playlist-resolver'
 import { SongResolver } from '@/server/schema/song/song-resolver'
 import { ArtistResolver } from '@/server/schema/artist/artist-resolver'
+import { AlbumResolver } from '@/server/schema/album/album-resolver'
 
 const schema = await buildSchema({
-  resolvers: [UserResolver, PlaylistResolver, SongResolver, ArtistResolver],
+  resolvers: [
+    UserResolver,
+    PlaylistResolver,
+    SongResolver,
+    ArtistResolver,
+    AlbumResolver,
+  ],
   globalMiddlewares: [ErrorInterceptor],
 })
 

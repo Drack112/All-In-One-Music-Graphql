@@ -1,9 +1,11 @@
 import { Arg, Query, Resolver } from 'type-graphql'
-import { Song, SongLyrics, SongVideo } from './song'
+import { Song, SongAlbum, SongLyrics, SongVideo } from './song'
 import { CacheControl } from '../cache-control'
 import { invidious } from '@/server/modules/invidious'
 import { isEmpty } from 'lodash'
 import { getLyrics } from '@/server/modules/lyrics'
+import { lastFM } from '@/server/modules/lastfm'
+import { getCoverImage } from '@/utils/get-cover-image'
 
 @Resolver(Song)
 export class SongResolver {
@@ -50,6 +52,34 @@ export class SongResolver {
       artist,
       title: song,
       lyrics,
+    }
+  }
+
+  @Query(() => SongAlbum)
+  @CacheControl({ maxAge: 60 * 60 * 24 * 7 })
+  async getAlbumBySong(
+    @Arg('artist') artist: string,
+    @Arg('song') song: string
+  ): Promise<SongAlbum> {
+    const { data } = await lastFM.getSong({
+      artist,
+      track: song,
+    })
+
+    if (isEmpty(data?.track?.album)) {
+      return {
+        artist,
+        coverUrl: '',
+        title: '',
+      }
+    }
+
+    const coverImage = getCoverImage(data.track.album.image)
+
+    return {
+      artist: data.track.artist.name,
+      coverUrl: coverImage,
+      title: data.track.album.title,
     }
   }
 }

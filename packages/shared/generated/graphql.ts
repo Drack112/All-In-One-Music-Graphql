@@ -74,6 +74,9 @@ export type MutationUpdateUserArgs = {
 
 export type Query = {
   __typename?: "Query";
+  albumDetails: AlbumDetails;
+  getAlbumBySong: SongAlbum;
+  getAlbums: Maybe<Array<Album>>;
   getLyrics: SongLyrics;
   getVideoInfo: Array<SongVideo>;
   me: User;
@@ -82,6 +85,23 @@ export type Query = {
   similarArtists: Array<Artist>;
   topSongsByArtist: Array<Song>;
   userPlaylists: Array<Playlist>;
+};
+
+export type QueryAlbumDetailsArgs = {
+  album: Scalars["String"]["input"];
+  albumId: Scalars["String"]["input"];
+  artist: Scalars["String"]["input"];
+};
+
+export type QueryGetAlbumBySongArgs = {
+  artist: Scalars["String"]["input"];
+  song: Scalars["String"]["input"];
+};
+
+export type QueryGetAlbumsArgs = {
+  artist: Scalars["String"]["input"];
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  page: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 export type QueryGetLyricsArgs = {
@@ -117,6 +137,24 @@ export type QueryTopSongsByArtistArgs = {
 export type Account = {
   __typename?: "account";
   provider: Scalars["String"]["output"];
+};
+
+export type Album = {
+  __typename?: "album";
+  albumId: Maybe<Scalars["String"]["output"]>;
+  artist: Scalars["String"]["output"];
+  coverImage: Maybe<Scalars["String"]["output"]>;
+  description: Maybe<Scalars["String"]["output"]>;
+  genre: Maybe<Scalars["String"]["output"]>;
+  name: Scalars["String"]["output"];
+  tracks: Maybe<Array<Scalars["String"]["output"]>>;
+  year: Maybe<Scalars["String"]["output"]>;
+};
+
+export type AlbumDetails = {
+  __typename?: "albumDetails";
+  description: Maybe<Scalars["String"]["output"]>;
+  tracks: Maybe<Array<Scalars["String"]["output"]>>;
 };
 
 export type Artist = {
@@ -158,6 +196,13 @@ export type Song = {
   playlistId: Maybe<Scalars["Int"]["output"]>;
   title: Scalars["String"]["output"];
   year: Maybe<Scalars["String"]["output"]>;
+};
+
+export type SongAlbum = {
+  __typename?: "songAlbum";
+  artist: Scalars["String"]["output"];
+  coverUrl: Scalars["String"]["output"];
+  title: Scalars["String"]["output"];
 };
 
 export type SongInput = {
@@ -236,6 +281,56 @@ export type AddToPlaylistMutationMutationVariables = Exact<{
 export type AddToPlaylistMutationMutation = {
   __typename?: "Mutation";
   addToPlaylist: boolean;
+};
+
+export type GetAlbumBySongQueryQueryVariables = Exact<{
+  artist: Scalars["String"]["input"];
+  song: Scalars["String"]["input"];
+}>;
+
+export type GetAlbumBySongQueryQuery = {
+  __typename?: "Query";
+  getAlbumBySong: {
+    __typename: "songAlbum";
+    artist: string;
+    coverUrl: string;
+    title: string;
+  };
+};
+
+export type GetAlbumDetailsQueryQueryVariables = Exact<{
+  albumId: Scalars["String"]["input"];
+  album: Scalars["String"]["input"];
+  artist: Scalars["String"]["input"];
+}>;
+
+export type GetAlbumDetailsQueryQuery = {
+  __typename?: "Query";
+  albumDetails: {
+    __typename?: "albumDetails";
+    tracks: Array<string> | null;
+    description: string | null;
+  };
+};
+
+export type GetAlbumsQueryQueryVariables = Exact<{
+  artist: Scalars["String"]["input"];
+  limit: Scalars["Int"]["input"];
+}>;
+
+export type GetAlbumsQueryQuery = {
+  __typename?: "Query";
+  getAlbums: Array<{
+    __typename?: "album";
+    artist: string;
+    coverImage: string | null;
+    description: string | null;
+    genre: string | null;
+    name: string;
+    tracks: Array<string> | null;
+    year: string | null;
+    albumId: string | null;
+  }> | null;
 };
 
 export type GetLyricsQueryQueryVariables = Exact<{
@@ -430,6 +525,42 @@ export const AddToPlaylistMutationDocument = gql`
     addToPlaylist(playlistId: $playlistId, songIds: $songIds, songs: $songs)
   }
 `;
+export const GetAlbumBySongQueryDocument = gql`
+  query getAlbumBySongQuery($artist: String!, $song: String!) {
+    getAlbumBySong(artist: $artist, song: $song) {
+      artist
+      coverUrl
+      title
+      __typename
+    }
+  }
+`;
+export const GetAlbumDetailsQueryDocument = gql`
+  query getAlbumDetailsQuery(
+    $albumId: String!
+    $album: String!
+    $artist: String!
+  ) {
+    albumDetails(albumId: $albumId, album: $album, artist: $artist) {
+      tracks
+      description
+    }
+  }
+`;
+export const GetAlbumsQueryDocument = gql`
+  query getAlbumsQuery($artist: String!, $limit: Int!) {
+    getAlbums(artist: $artist, limit: $limit, page: 1) {
+      artist
+      coverImage
+      description
+      genre
+      name
+      tracks
+      year
+      albumId
+    }
+  }
+`;
 export const GetLyricsQueryDocument = gql`
   query getLyricsQuery($artist: String!, $song: String!) {
     getLyrics(artist: $artist, song: $song) {
@@ -609,6 +740,54 @@ export function getSdk(
           ),
         "addToPlaylistMutation",
         "mutation",
+        variables,
+      );
+    },
+    getAlbumBySongQuery(
+      variables: GetAlbumBySongQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<GetAlbumBySongQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<GetAlbumBySongQueryQuery>(
+            GetAlbumBySongQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "getAlbumBySongQuery",
+        "query",
+        variables,
+      );
+    },
+    getAlbumDetailsQuery(
+      variables: GetAlbumDetailsQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<GetAlbumDetailsQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<GetAlbumDetailsQueryQuery>(
+            GetAlbumDetailsQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "getAlbumDetailsQuery",
+        "query",
+        variables,
+      );
+    },
+    getAlbumsQuery(
+      variables: GetAlbumsQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<GetAlbumsQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<GetAlbumsQueryQuery>(
+            GetAlbumsQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "getAlbumsQuery",
+        "query",
         variables,
       );
     },
