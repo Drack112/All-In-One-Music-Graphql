@@ -65,6 +65,7 @@ export type Query = {
   getVideoInfo: Array<SongVideo>;
   me: User;
   playlist: Playlist;
+  similarArtists: Array<Artist>;
   topSongsByArtist: Array<Song>;
   userPlaylists: Array<Playlist>;
 };
@@ -77,6 +78,12 @@ export type QueryPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
 };
 
+export type QuerySimilarArtistsArgs = {
+  artist: Scalars["String"]["input"];
+  limit?: Scalars["Int"]["input"];
+  onlyNames?: Scalars["Boolean"]["input"];
+};
+
 export type QueryTopSongsByArtistArgs = {
   artist: Scalars["String"]["input"];
   limit?: Scalars["Int"]["input"];
@@ -86,6 +93,25 @@ export type QueryTopSongsByArtistArgs = {
 export type Account = {
   __typename?: "account";
   provider: Scalars["String"]["output"];
+};
+
+export type Artist = {
+  __typename?: "artist";
+  bannerImage: Maybe<Scalars["String"]["output"]>;
+  biography: Maybe<Scalars["String"]["output"]>;
+  disbanded: Maybe<Scalars["Boolean"]["output"]>;
+  disbandedYear: Maybe<Scalars["String"]["output"]>;
+  facebook: Maybe<Scalars["String"]["output"]>;
+  formedYear: Maybe<Scalars["String"]["output"]>;
+  genre: Maybe<Scalars["String"]["output"]>;
+  image: Maybe<Scalars["String"]["output"]>;
+  location: Maybe<Scalars["String"]["output"]>;
+  logo: Maybe<Scalars["String"]["output"]>;
+  memberQuantity: Maybe<Scalars["Float"]["output"]>;
+  name: Scalars["String"]["output"];
+  style: Maybe<Scalars["String"]["output"]>;
+  twitter: Maybe<Scalars["String"]["output"]>;
+  website: Maybe<Scalars["String"]["output"]>;
 };
 
 export type Playlist = {
@@ -213,6 +239,22 @@ export type MeQueryQuery = {
   };
 };
 
+export type SimilarArtistsQueryQueryVariables = Exact<{
+  artist: Scalars["String"]["input"];
+  limit: InputMaybe<Scalars["Int"]["input"]>;
+  onlyNames: InputMaybe<Scalars["Boolean"]["input"]>;
+}>;
+
+export type SimilarArtistsQueryQuery = {
+  __typename?: "Query";
+  similarArtists: Array<{
+    __typename: "artist";
+    name: string;
+    image: string | null;
+    bannerImage: string | null;
+  }>;
+};
+
 export type TopSongsByArtistQueryQueryVariables = Exact<{
   artist: Scalars["String"]["input"];
 }>;
@@ -333,6 +375,20 @@ export const MeQueryDocument = gql`
         provider
         __typename
       }
+      __typename
+    }
+  }
+`;
+export const SimilarArtistsQueryDocument = gql`
+  query similarArtistsQuery(
+    $artist: String!
+    $limit: Int
+    $onlyNames: Boolean
+  ) {
+    similarArtists(artist: $artist, limit: $limit, onlyNames: $onlyNames) {
+      name
+      image
+      bannerImage
       __typename
     }
   }
@@ -472,6 +528,22 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "meQuery",
+        "query",
+        variables,
+      );
+    },
+    similarArtistsQuery(
+      variables: SimilarArtistsQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<SimilarArtistsQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<SimilarArtistsQueryQuery>(
+            SimilarArtistsQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "similarArtistsQuery",
         "query",
         variables,
       );

@@ -15,6 +15,8 @@ export const {
   playlistQuery,
   updatePlaylistMutation,
   updatePlaylistSongRankMutation,
+  topSongsByArtistQuery,
+  similarArtistsQuery,
 } = getSdk(gqlClient)
 
 export const queryClient = new QueryClient({
