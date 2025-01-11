@@ -1,0 +1,8 @@
+query topSongsByArtistQuery($artist: String!) {
+  topSongsByArtist(artist: $artist) {
+    artist
+    title
+    playcount
+    __typename
+  }
+}

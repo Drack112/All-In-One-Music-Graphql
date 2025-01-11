@@ -65,6 +65,7 @@ export type Query = {
   getVideoInfo: Array<SongVideo>;
   me: User;
   playlist: Playlist;
+  topSongsByArtist: Array<Song>;
   userPlaylists: Array<Playlist>;
 };
 
@@ -74,6 +75,12 @@ export type QueryGetVideoInfoArgs = {
 
 export type QueryPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
+};
+
+export type QueryTopSongsByArtistArgs = {
+  artist: Scalars["String"]["input"];
+  limit?: Scalars["Int"]["input"];
+  page: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 export type Account = {
@@ -89,6 +96,18 @@ export type Playlist = {
   songs: Maybe<Array<UserSong>>;
   type: Maybe<Scalars["Int"]["output"]>;
   user: Maybe<User>;
+};
+
+export type Song = {
+  __typename?: "song";
+  album: Maybe<Scalars["String"]["output"]>;
+  artist: Scalars["String"]["output"];
+  duration: Maybe<Scalars["String"]["output"]>;
+  genre: Maybe<Scalars["String"]["output"]>;
+  playcount: Maybe<Scalars["String"]["output"]>;
+  playlistId: Maybe<Scalars["Int"]["output"]>;
+  title: Scalars["String"]["output"];
+  year: Maybe<Scalars["String"]["output"]>;
 };
 
 export type SongInput = {
@@ -192,6 +211,20 @@ export type MeQueryQuery = {
     hasPassword: boolean;
     accounts: Array<{ __typename: "account"; provider: string }>;
   };
+};
+
+export type TopSongsByArtistQueryQueryVariables = Exact<{
+  artist: Scalars["String"]["input"];
+}>;
+
+export type TopSongsByArtistQueryQuery = {
+  __typename?: "Query";
+  topSongsByArtist: Array<{
+    __typename: "song";
+    artist: string;
+    title: string;
+    playcount: string | null;
+  }>;
 };
 
 export type UpdatePlaylistSongRankMutationMutationVariables = Exact<{
@@ -300,6 +333,16 @@ export const MeQueryDocument = gql`
         provider
         __typename
       }
+      __typename
+    }
+  }
+`;
+export const TopSongsByArtistQueryDocument = gql`
+  query topSongsByArtistQuery($artist: String!) {
+    topSongsByArtist(artist: $artist) {
+      artist
+      title
+      playcount
       __typename
     }
   }
@@ -429,6 +472,22 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "meQuery",
+        "query",
+        variables,
+      );
+    },
+    topSongsByArtistQuery(
+      variables: TopSongsByArtistQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<TopSongsByArtistQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<TopSongsByArtistQueryQuery>(
+            TopSongsByArtistQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "topSongsByArtistQuery",
         "query",
         variables,
       );
