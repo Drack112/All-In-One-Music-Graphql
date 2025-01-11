@@ -608,4 +608,35 @@ export class PlaylistResolver {
       },
     }
   }
+
+  @Mutation(() => Playlist)
+  async createPlaylist(
+    @Ctx() ctx: Context,
+    @Arg('name', { nullable: true }) name?: string
+  ): Promise<Playlist> {
+    const session = ctx.session
+
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+
+    const playlistName = name ?? `playlist-${createId()}`
+
+    const [createdPlaylist] = await db
+      .insert(Playlists)
+      .values({
+        name: playlistName,
+        userId: session.user.id,
+        updatedAt: new Date(),
+      })
+      .returning({ insertedId: Playlists.id })
+
+    return {
+      id: createdPlaylist.insertedId,
+      name: playlistName,
+      user: {
+        id: session.user.id,
+      },
+    }
+  }
 }

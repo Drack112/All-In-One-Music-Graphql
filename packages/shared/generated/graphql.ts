@@ -34,6 +34,7 @@ export type Scalars = {
 export type Mutation = {
   __typename?: "Mutation";
   addToPlaylist: Scalars["Boolean"]["output"];
+  createPlaylist: Playlist;
   createSongRadio: Playlist;
   deletePlaylist: Scalars["Boolean"]["output"];
   importPlaylist: Playlist;
@@ -47,6 +48,10 @@ export type MutationAddToPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
   songIds: InputMaybe<Array<Scalars["ID"]["input"]>>;
   songs: InputMaybe<Array<SongInput>>;
+};
+
+export type MutationCreatePlaylistArgs = {
+  name: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type MutationCreateSongRadioArgs = {
@@ -87,6 +92,7 @@ export type MutationUpdateUserArgs = {
 export type Query = {
   __typename?: "Query";
   albumDetails: AlbumDetails;
+  artist: Artist;
   getAlbumBySong: SongAlbum;
   getAlbums: Maybe<Array<Album>>;
   getLyrics: SongLyrics;
@@ -103,6 +109,10 @@ export type QueryAlbumDetailsArgs = {
   album: Scalars["String"]["input"];
   albumId: Scalars["String"]["input"];
   artist: Scalars["String"]["input"];
+};
+
+export type QueryArtistArgs = {
+  name: Scalars["String"]["input"];
 };
 
 export type QueryGetAlbumBySongArgs = {
@@ -293,6 +303,39 @@ export type AddToPlaylistMutationMutationVariables = Exact<{
 export type AddToPlaylistMutationMutation = {
   __typename?: "Mutation";
   addToPlaylist: boolean;
+};
+
+export type ArtistQueryQueryVariables = Exact<{
+  name: Scalars["String"]["input"];
+}>;
+
+export type ArtistQueryQuery = {
+  __typename?: "Query";
+  artist: {
+    __typename: "artist";
+    name: string;
+    biography: string | null;
+    bannerImage: string | null;
+    genre: string | null;
+    formedYear: string | null;
+    twitter: string | null;
+    disbanded: boolean | null;
+    facebook: string | null;
+    location: string | null;
+    style: string | null;
+    logo: string | null;
+    image: string | null;
+    website: string | null;
+  };
+};
+
+export type CreatePlaylistMutationMutationVariables = Exact<{
+  name: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type CreatePlaylistMutationMutation = {
+  __typename?: "Mutation";
+  createPlaylist: { __typename?: "playlist"; id: string; name: string };
 };
 
 export type CreateSongRadioMutationMutationVariables = Exact<{
@@ -557,6 +600,35 @@ export const AddToPlaylistMutationDocument = gql`
     addToPlaylist(playlistId: $playlistId, songIds: $songIds, songs: $songs)
   }
 `;
+export const ArtistQueryDocument = gql`
+  query artistQuery($name: String!) {
+    artist(name: $name) {
+      name
+      biography
+      bannerImage
+      genre
+      formedYear
+      twitter
+      disbanded
+      facebook
+      location
+      disbanded
+      style
+      logo
+      image
+      website
+      __typename
+    }
+  }
+`;
+export const CreatePlaylistMutationDocument = gql`
+  mutation createPlaylistMutation($name: String) {
+    createPlaylist(name: $name) {
+      id
+      name
+    }
+  }
+`;
 export const CreateSongRadioMutationDocument = gql`
   mutation createSongRadioMutation(
     $songId: ID
@@ -792,6 +864,37 @@ export function getSdk(
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "addToPlaylistMutation",
+        "mutation",
+        variables,
+      );
+    },
+    artistQuery(
+      variables: ArtistQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<ArtistQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<ArtistQueryQuery>(ArtistQueryDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "artistQuery",
+        "query",
+        variables,
+      );
+    },
+    createPlaylistMutation(
+      variables?: CreatePlaylistMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<CreatePlaylistMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<CreatePlaylistMutationMutation>(
+            CreatePlaylistMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "createPlaylistMutation",
         "mutation",
         variables,
       );

@@ -10,6 +10,63 @@ import { getCoverImage } from '@/utils/get-cover-image'
 
 @Resolver(Artist)
 export class ArtistResolver {
+  @Query(() => Artist)
+  @CacheControl({ maxAge: 60 * 60 * 24 * 7 })
+  async artist(
+    @Arg('name') name: string
+  ): Promise<Partial<Artist> | undefined> {
+    const getArtist = async (): Promise<Partial<Artist> | undefined> => {
+      const [getArtistResponse, getFallbackArtistResponse] = await Promise.all([
+        audioDB.getArtist({ artist: name }),
+        lastFM.getArtist({ artist: name }),
+      ])
+
+      const artist = getArtistResponse.data?.artists?.[0]
+
+      const fallbackArtist = getFallbackArtistResponse.data?.artist
+
+      if (artist) {
+        return {
+          name: artist.strArtist,
+          formedYear: artist.intFormedYear?.toString(),
+          image: artist.strArtistThumb,
+          bannerImage: artist.strArtistFanart,
+          logo: artist.strArtistLogo,
+          style: artist.strStyle,
+          genre: artist.strGenre,
+          website: artist.strWebsite,
+          facebook: artist.strFacebook,
+          twitter: artist.strTwitter,
+          biography: fallbackArtist.bio.summary || artist.strBiographyEN,
+          memberQuantity: Number(artist.intMembers),
+          location: artist.strCountry,
+          disbanded: artist.strDisbanded
+            ? Boolean(artist.strDisbanded)
+            : undefined,
+          disbandedYear: artist.intDiedYear?.toString(),
+        }
+      }
+
+      if (!fallbackArtist) {
+        return undefined
+      }
+
+      return {
+        name: fallbackArtist.name,
+        biography: fallbackArtist.bio.summary,
+        genre: fallbackArtist.tags.tag?.map((tag) => tag.name).join(', '),
+      }
+    }
+
+    const artist = await getArtist()
+
+    if (!artist) {
+      throw new Error('Artist not found')
+    }
+
+    return artist
+  }
+
   @Query(() => [Song])
   @CacheControl({ maxAge: 60 * 60 * 24 * 7 })
   async topSongsByArtist(
