@@ -248,4 +248,45 @@ export class PlaylistResolver {
       },
     }
   }
+
+  @Mutation(() => Boolean)
+  async updatePlaylistSongRank(
+    @Ctx() ctx: Context,
+    @Arg('playlistId', () => ID) playlistId: string,
+    @Arg('songId', () => ID) songId: string,
+    @Arg('rank') rank: string
+  ): Promise<boolean> {
+    const session = ctx.session
+
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+
+    const { userId } = getTableColumns(Playlists)
+
+    const [playlist] = await db
+      .select({
+        userId,
+      })
+      .from(Playlists)
+      .where(eq(Playlists.id, playlistId))
+
+    if (playlist.userId !== session.user.id) {
+      throw new Error('Unauthorized')
+    }
+
+    await db
+      .update(PlaylistsToSongs)
+      .set({
+        rank,
+      })
+      .where(
+        and(
+          eq(PlaylistsToSongs.playlistId, playlistId),
+          eq(PlaylistsToSongs.songId, songId)
+        )
+      )
+
+    return true
+  }
 }
