@@ -3,6 +3,7 @@ import { Gradient } from '@/components/gradient'
 import { SearchTrigger } from '@/components/search/trigger'
 
 import { Seo } from '@/components/seo'
+import { TheaterMode } from '@/components/theater-mode'
 import { useGlobalSearchStore } from '@/store/use-global-search'
 import { useLayoutState } from '@/store/use-layout-state'
 
@@ -13,7 +14,7 @@ export const HomePage = () => {
 
   const renderContent = () => {
     if (theaterMode) {
-      return <div>Mode</div>
+      return <TheaterMode />
     }
 
     return (

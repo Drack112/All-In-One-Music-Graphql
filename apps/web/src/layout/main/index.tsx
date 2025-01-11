@@ -6,6 +6,25 @@ import { ModalProvider } from '@/providers/modal-provider'
 import { useLayoutState } from '@/store/use-layout-state'
 import { AddToPlaylistDndContext } from '@/hooks/add-to-playlist'
 import { FooterPlayer } from '@/components/player'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { VideoPlayer } from '@/components/video-player'
+
+const VideoPlayerPortal = () => {
+  const videoPosition = useLayoutState((state) => state.videoPosition)
+
+  const [domReady, setDomReady] = useState(false)
+
+  useEffect(() => {
+    setDomReady(true)
+  }, [])
+
+  const container = domReady
+    ? document.querySelector(`[data-${videoPosition}]`)
+    : null
+
+  return domReady && container ? createPortal(<VideoPlayer />, container) : null
+}
 
 const Attribution = () => {
   const theaterMode = useLayoutState((state) => state.theaterMode)
@@ -47,6 +66,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       <FooterPlayer />
       <Toaster />
       <ModalProvider />
+      <VideoPlayerPortal />
     </>
   )
 }
