@@ -34,6 +34,7 @@ export type Scalars = {
 export type Mutation = {
   __typename?: "Mutation";
   addToPlaylist: Scalars["Boolean"]["output"];
+  createSongRadio: Playlist;
   deletePlaylist: Scalars["Boolean"]["output"];
   importPlaylist: Playlist;
   removeFromPlaylist: Scalars["Boolean"]["output"];
@@ -46,6 +47,12 @@ export type MutationAddToPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
   songIds: InputMaybe<Array<Scalars["ID"]["input"]>>;
   songs: InputMaybe<Array<SongInput>>;
+};
+
+export type MutationCreateSongRadioArgs = {
+  songArtist: InputMaybe<Scalars["String"]["input"]>;
+  songId: InputMaybe<Scalars["ID"]["input"]>;
+  songTitle: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type MutationDeletePlaylistArgs = {
@@ -286,6 +293,17 @@ export type AddToPlaylistMutationMutationVariables = Exact<{
 export type AddToPlaylistMutationMutation = {
   __typename?: "Mutation";
   addToPlaylist: boolean;
+};
+
+export type CreateSongRadioMutationMutationVariables = Exact<{
+  songId: InputMaybe<Scalars["ID"]["input"]>;
+  songTitle: InputMaybe<Scalars["String"]["input"]>;
+  songArtist: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type CreateSongRadioMutationMutation = {
+  __typename?: "Mutation";
+  createSongRadio: { __typename?: "playlist"; id: string; name: string };
 };
 
 export type DeletePlaylistMutationMutationVariables = Exact<{
@@ -539,6 +557,22 @@ export const AddToPlaylistMutationDocument = gql`
     addToPlaylist(playlistId: $playlistId, songIds: $songIds, songs: $songs)
   }
 `;
+export const CreateSongRadioMutationDocument = gql`
+  mutation createSongRadioMutation(
+    $songId: ID
+    $songTitle: String
+    $songArtist: String
+  ) {
+    createSongRadio(
+      songId: $songId
+      songTitle: $songTitle
+      songArtist: $songArtist
+    ) {
+      id
+      name
+    }
+  }
+`;
 export const DeletePlaylistMutationDocument = gql`
   mutation deletePlaylistMutation($playlistId: ID!) {
     deletePlaylist(playlistId: $playlistId)
@@ -758,6 +792,22 @@ export function getSdk(
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "addToPlaylistMutation",
+        "mutation",
+        variables,
+      );
+    },
+    createSongRadioMutation(
+      variables?: CreateSongRadioMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<CreateSongRadioMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<CreateSongRadioMutationMutation>(
+            CreateSongRadioMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "createSongRadioMutation",
         "mutation",
         variables,
       );

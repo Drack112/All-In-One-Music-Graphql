@@ -13,6 +13,8 @@ import { logger } from '@/server/logger'
 import { getUrlSourceName } from '@/utils/get-url-source'
 import { getExternalPlaylistTracks } from '@/utils/get-external-playlist-tracks'
 import { createId } from '@paralleldrive/cuid2'
+import { invidious } from '@/server/modules/invidious'
+import { formatYoutubeTitle } from '@/utils/format-youtube-title'
 
 @Resolver(Playlist)
 export class PlaylistResolver {
@@ -469,5 +471,141 @@ export class PlaylistResolver {
       .where(eq(PlaylistsToSongs.playlistId, playlistId))
 
     return true
+  }
+
+  @Mutation(() => Playlist)
+  async createSongRadio(
+    @Ctx() ctx: Context,
+    @Arg('songId', () => ID, { nullable: true }) songId?: string,
+    @Arg('songTitle', { nullable: true }) songTitle?: string,
+    @Arg('songArtist', { nullable: true }) songArtist?: string
+  ): Promise<Playlist> {
+    const session = ctx.session
+
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+    if (!songId && !songTitle) {
+      throw new Error('No song provided')
+    }
+
+    const { id: playlistId, name } = getTableColumns(Playlists)
+    const { id: colSongId } = getTableColumns(Songs)
+
+    const [existingSong] =
+      songTitle && songArtist && !songId
+        ? await db
+            .select({ id: colSongId })
+            .from(Songs)
+            .where(
+              and(eq(Songs.title, songTitle), eq(Songs.artist, songArtist))
+            )
+        : [null]
+
+    const existingSongId = songId || existingSong?.id
+
+    if (existingSongId) {
+      const [radioPlaylist] = await db
+        .select({
+          playlistId,
+          name,
+        })
+        .from(Playlists)
+        .where(
+          and(
+            eq(Playlists.userId, session.user.id),
+            eq(Playlists.radioSongId, existingSongId)
+          )
+        )
+
+      if (radioPlaylist) {
+        return {
+          id: radioPlaylist.playlistId,
+          name: radioPlaylist.name,
+        }
+      }
+    }
+
+    const { data: videoData } = await invidious.getVideos({
+      query: `${songArtist} - ${songTitle}`,
+    })
+
+    const video = videoData[0]
+
+    if (!video) {
+      throw new Error('Video not found')
+    }
+
+    const { data: radioData } = await invidious.getMix({
+      videoId: video.videoId,
+    })
+
+    if (!radioData) {
+      throw new Error('Could not create radio from song :(')
+    }
+
+    const songs = radioData.videos.map((video) =>
+      formatYoutubeTitle(video.title, video.author)
+    )
+
+    const radioPlaylistName = `${songArtist} Radio`
+
+    const createdRadioPlaylist = await db.transaction(async (tx) => {
+      const [createdRadioSong] = await tx
+        .insert(Songs)
+        .values({
+          title: songTitle!,
+          artist: songArtist!,
+        })
+        .onConflictDoUpdate({
+          target: [Songs.title, Songs.artist, Songs.album],
+          set: { updatedAt: new Date() },
+        })
+        .returning({ insertedId: Songs.id })
+
+      const [createdPlaylist] = await tx
+        .insert(Playlists)
+        .values({
+          name: radioPlaylistName,
+          userId: session.user.id,
+          radioSongId: createdRadioSong.insertedId,
+          type: playlistType.RADIO,
+          updatedAt: new Date(),
+        })
+        .returning({ insertedId: Playlists.id })
+
+      await Promise.all(
+        chunk(songs, 50).map(async (chunk) => {
+          const createdSongs = await tx
+            .insert(Songs)
+            .values(chunk)
+            .onConflictDoUpdate({
+              target: [Songs.title, Songs.artist, Songs.album],
+              set: { updatedAt: new Date() },
+            })
+            .returning({ insertedId: Songs.id })
+
+          await tx
+            .insert(PlaylistsToSongs)
+            .values(
+              createdSongs.map((song) => ({
+                playlistId: createdPlaylist.insertedId,
+                songId: song.insertedId,
+              }))
+            )
+            .onConflictDoNothing()
+        })
+      )
+
+      return createdPlaylist
+    })
+
+    return {
+      id: createdRadioPlaylist.insertedId,
+      name: radioPlaylistName,
+      user: {
+        id: session.user.id,
+      },
+    }
   }
 }
