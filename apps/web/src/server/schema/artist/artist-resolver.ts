@@ -1,11 +1,11 @@
 import { Arg, Int, Query, Resolver } from 'type-graphql'
-import Artist from './artist'
-import { CacheControl } from '../cache-control'
-import { Song } from '../song/song'
+import Artist from './entities/artist'
+import { CacheControl } from '../../decorators/cache-control'
+import { Song } from '../song/entities/song'
 import { lastFM } from '@/server/modules/lastfm'
-import { audioDB } from '@/server/modules/audiodb/audiodb'
+import { audioDB } from '@/server/modules/audiodb'
 import { compact, find, isEmpty, map, orderBy, toLower } from 'lodash'
-import { Album } from '../album/album'
+import { Album } from '../album/entities/album'
 import { getCoverImage } from '@/utils/get-cover-image'
 
 @Resolver(Artist)

@@ -10,7 +10,7 @@ import NextAuth, { type NextAuthConfig } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GithubProvider from 'next-auth/providers/github'
 
-import { db } from './db/db'
+import { db } from './db'
 import { Accounts, Users } from './db/schema'
 import { redis } from './server/redis'
 
@@ -124,9 +124,6 @@ export const { handlers, auth } = NextAuth({
     }),
   ],
   secret: process.env.AUTH_SECRET,
-  /*events: {
-    signIn: async (message) => {},
-  },*/
   callbacks: {
     session: ({ session, token }) => {
       if (session && token) {

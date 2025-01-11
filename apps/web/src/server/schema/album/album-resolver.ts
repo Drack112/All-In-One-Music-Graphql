@@ -1,11 +1,11 @@
 import { map } from 'lodash'
 import { Arg, Query, Resolver } from 'type-graphql'
 
-import { audioDB } from '@/server/modules/audiodb/audiodb'
+import { audioDB } from '@/server/modules/audiodb'
 import { lastFM } from '@/server/modules/lastfm'
 
-import { CacheControl } from '../cache-control'
-import { Album, AlbumDetails } from './album'
+import { CacheControl } from '../../decorators/cache-control'
+import { Album, AlbumDetails } from './entities/album'
 
 @Resolver(Album)
 export class AlbumResolver {

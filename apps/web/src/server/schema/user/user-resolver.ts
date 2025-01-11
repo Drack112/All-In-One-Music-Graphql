@@ -14,11 +14,10 @@ import {
 } from 'type-graphql'
 
 import { dbErrorCodes } from '@/constants'
-import { db } from '@/db/db'
+import { db } from '@/db'
 import { Accounts, Users } from '@/db/schema'
 import type { Context } from '@/types'
-
-import { UpdateUserOutput, User, UserInput } from './user'
+import { UpdateUserOutput, User, UserInput } from './entities/user'
 
 @Resolver(User)
 export class UserResolver {

@@ -1,6 +1,5 @@
 import { Field, ID, InputType, ObjectType } from 'type-graphql'
-
-import { Account } from '../account/account'
+import { Account } from '../../account/account'
 
 @ObjectType('user')
 export class User {

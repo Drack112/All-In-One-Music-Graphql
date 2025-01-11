@@ -1,6 +1,6 @@
 import { Arg, Query, Resolver } from 'type-graphql'
-import { Song, SongAlbum, SongLyrics, SongVideo } from './song'
-import { CacheControl } from '../cache-control'
+import { Song, SongAlbum, SongLyrics, SongVideo } from './entities/song'
+import { CacheControl } from '../../decorators/cache-control'
 import { invidious } from '@/server/modules/invidious'
 import { isEmpty } from 'lodash'
 import { getLyrics } from '@/server/modules/lyrics'
