@@ -15,6 +15,13 @@
       "when": 1736533331076,
       "tag": "0001_clear_kinsey_walden",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1736617521553,
+      "tag": "0002_perfect_santa_claus",
+      "breakpoints": true
     }
   ]
 }

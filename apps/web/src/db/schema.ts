@@ -11,7 +11,7 @@ export const Users = sqliteTable('users', {
     .primaryKey()
     .$defaultFn(() => createId()),
   name: text('name').notNull(),
-  username: text('username').notNull().unique().default(''),
+  username: text('username').unique().notNull().default(''),
   email: text('email').unique(),
   password: text('password'),
   createdAt: integer('createdAt', { mode: 'timestamp' })
@@ -19,6 +19,10 @@ export const Users = sqliteTable('users', {
     .default(sql`(unixepoch())`),
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
 })
+
+export const UserRelations = relations(Users, ({ many }) => ({
+  playlists: many(Playlists),
+}))
 
 export const Accounts = sqliteTable('accounts', {
   id: integer('id').primaryKey(),
@@ -33,22 +37,24 @@ export const Accounts = sqliteTable('accounts', {
   updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
 })
 
-export const Songs = sqliteTable('songs', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  title: text('title').notNull(),
-  artist: text('artist').notNull(),
-  album: text('album').default(''),
-  createdAt: integer('createdAt', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updatedAt', { mode: 'timestamp' }).notNull(),
-})
-
-export const UserRelations = relations(Users, ({ many }) => ({
-  playlists: many(Playlists),
-}))
+export const Songs = sqliteTable(
+  'songs',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    title: text('title').notNull(),
+    artist: text('artist').notNull(),
+    album: text('album').default(''),
+    createdAt: integer('createdAt', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updatedAt', { mode: 'timestamp' }),
+  },
+  (s) => ({
+    unq: unique().on(s.title, s.artist, s.album),
+  })
+)
 
 export const Playlists = sqliteTable('playlists', {
   id: text('id')
