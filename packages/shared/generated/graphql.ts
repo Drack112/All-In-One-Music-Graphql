@@ -34,6 +34,7 @@ export type Scalars = {
 export type Mutation = {
   __typename?: "Mutation";
   addToPlaylist: Scalars["Boolean"]["output"];
+  importPlaylist: Playlist;
   removeFromPlaylist: Scalars["Boolean"]["output"];
   updatePlaylist: Playlist;
   updatePlaylistSongRank: Scalars["Boolean"]["output"];
@@ -44,6 +45,11 @@ export type MutationAddToPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
   songIds: InputMaybe<Array<Scalars["ID"]["input"]>>;
   songs: InputMaybe<Array<SongInput>>;
+};
+
+export type MutationImportPlaylistArgs = {
+  playlistId: InputMaybe<Scalars["ID"]["input"]>;
+  url: Scalars["String"]["input"];
 };
 
 export type MutationRemoveFromPlaylistArgs = {
@@ -235,6 +241,21 @@ export type GetVideoInfoQueryQuery = {
   }>;
 };
 
+export type ImportPlaylistMutationMutationVariables = Exact<{
+  url: Scalars["String"]["input"];
+  playlistId: InputMaybe<Scalars["ID"]["input"]>;
+}>;
+
+export type ImportPlaylistMutationMutation = {
+  __typename?: "Mutation";
+  importPlaylist: {
+    __typename?: "playlist";
+    name: string;
+    id: string;
+    user: { __typename?: "user"; id: string } | null;
+  };
+};
+
 export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type MeQueryQuery = {
@@ -390,6 +411,17 @@ export const GetVideoInfoQueryDocument = gql`
       videoUrl
       thumbnailUrl
       __typename
+    }
+  }
+`;
+export const ImportPlaylistMutationDocument = gql`
+  mutation importPlaylistMutation($url: String!, $playlistId: ID) {
+    importPlaylist(url: $url, playlistId: $playlistId) {
+      name
+      id
+      user {
+        id
+      }
     }
   }
 `;
@@ -555,6 +587,22 @@ export function getSdk(
           ),
         "getVideoInfoQuery",
         "query",
+        variables,
+      );
+    },
+    importPlaylistMutation(
+      variables: ImportPlaylistMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<ImportPlaylistMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<ImportPlaylistMutationMutation>(
+            ImportPlaylistMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "importPlaylistMutation",
+        "mutation",
         variables,
       );
     },

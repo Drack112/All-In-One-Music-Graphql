@@ -10,6 +10,9 @@ import { getLastRankInPlaylist, Playlist } from './playlist'
 import { Playlists, PlaylistsToSongs, Songs, Users } from '@/db/schema'
 import { SongInput } from '../song/song'
 import { logger } from '@/server/logger'
+import { getUrlSourceName } from '@/utils/get-url-source'
+import { getExternalPlaylistTracks } from '@/utils/get-external-playlist-tracks'
+import { createId } from '@paralleldrive/cuid2'
 
 @Resolver(Playlist)
 export class PlaylistResolver {
@@ -321,5 +324,125 @@ export class PlaylistResolver {
       )
 
     return true
+  }
+
+  @Mutation(() => Playlist)
+  async importPlaylist(
+    @Ctx() ctx: Context,
+    @Arg('url') url: string,
+    @Arg('playlistId', () => ID, { nullable: true }) playlistId?: string
+  ): Promise<Playlist> {
+    const urlSourceName = getUrlSourceName(url)
+
+    if (!urlSourceName) {
+      throw new Error('Invalid URL')
+    }
+
+    const session = ctx.session
+
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+
+    const [existingPlaylist] = playlistId
+      ? await db
+          .select({
+            id: Playlists.id,
+          })
+          .from(Playlists)
+          .where(
+            and(
+              eq(Playlists.id, playlistId),
+              eq(Playlists.userId, session.user.id)
+            )
+          )
+      : [null]
+
+    if (playlistId && !existingPlaylist) {
+      throw new Error('Playlist not found')
+    }
+
+    const tracks = await getExternalPlaylistTracks(url, urlSourceName)
+
+    if (tracks.length === 0) {
+      throw new Error('No tracks found in url')
+    }
+
+    const playlistName = `playlist-${createId()}`
+
+    const createdPlaylistId = await db.transaction(async (tx) => {
+      const [createdPlaylist] = existingPlaylist
+        ? [{ insertedId: existingPlaylist.id }]
+        : await tx
+            .insert(Playlists)
+            .values({
+              name: playlistName,
+              userId: session?.user.id,
+              updatedAt: new Date(),
+            })
+            .returning({ insertedId: Playlists.id })
+
+      try {
+        await Promise.all(
+          chunk(tracks, 50).map(async (chunk) => {
+            const createdSongs = await tx
+              .insert(Songs)
+              .values(chunk.map((song) => ({ ...song, updatedAt: new Date() })))
+              .onConflictDoUpdate({
+                target: [Songs.title, Songs.artist, Songs.album],
+                set: { updatedAt: new Date() },
+              })
+              .returning({
+                insertedId: Songs.id,
+                insertedTitle: Songs.title,
+                insertedArtist: Songs.artist,
+              })
+
+            const songsByTitleArtist = keyBy(
+              chunk,
+              (song) => `${song.artist}${song.title}`
+            )
+
+            const lastRank = await getLastRankInPlaylist(
+              createdPlaylist.insertedId
+            )
+
+            let currentRank = lastRank?.rank
+              ? LexoRank.parse(lastRank.rank).genNext()
+              : LexoRank.middle()
+
+            await tx.insert(PlaylistsToSongs).values(
+              createdSongs.map((createdSong) => {
+                const song = {
+                  playlistId: createdPlaylist.insertedId,
+                  songId: createdSong.insertedId,
+                  songUrl:
+                    songsByTitleArtist[
+                      `${createdSong.insertedArtist}${createdSong.insertedTitle}`
+                    ]?.url || null,
+                  rank: currentRank.toString(),
+                }
+                currentRank = currentRank.genNext()
+
+                return song
+              })
+            )
+          })
+        )
+      } catch (error) {
+        logger.error(error)
+        throw new Error('Error importing playlist or all songs already exist')
+      }
+
+      return createdPlaylist.insertedId
+    })
+
+    return {
+      id: createdPlaylistId,
+      name: playlistName,
+      user: {
+        id: session.user.id,
+      },
+    }
   }
 }
