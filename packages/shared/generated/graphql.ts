@@ -34,6 +34,7 @@ export type Scalars = {
 export type Mutation = {
   __typename?: "Mutation";
   addToPlaylist: Scalars["Boolean"]["output"];
+  removeFromPlaylist: Scalars["Boolean"]["output"];
   updatePlaylist: Playlist;
   updatePlaylistSongRank: Scalars["Boolean"]["output"];
   updateUser: UpdateUserOutput;
@@ -43,6 +44,11 @@ export type MutationAddToPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
   songIds: InputMaybe<Array<Scalars["ID"]["input"]>>;
   songs: InputMaybe<Array<SongInput>>;
+};
+
+export type MutationRemoveFromPlaylistArgs = {
+  playlistId: Scalars["ID"]["input"];
+  songId: Scalars["ID"]["input"];
 };
 
 export type MutationUpdatePlaylistArgs = {
@@ -245,6 +251,16 @@ export type MeQueryQuery = {
   };
 };
 
+export type RemoveFromPlaylistMutationMutationVariables = Exact<{
+  playlistId: Scalars["ID"]["input"];
+  songId: Scalars["ID"]["input"];
+}>;
+
+export type RemoveFromPlaylistMutationMutation = {
+  __typename?: "Mutation";
+  removeFromPlaylist: boolean;
+};
+
 export type SearchArtistQueryQueryVariables = Exact<{
   artist: Scalars["String"]["input"];
 }>;
@@ -392,6 +408,11 @@ export const MeQueryDocument = gql`
       }
       __typename
     }
+  }
+`;
+export const RemoveFromPlaylistMutationDocument = gql`
+  mutation removeFromPlaylistMutation($playlistId: ID!, $songId: ID!) {
+    removeFromPlaylist(playlistId: $playlistId, songId: $songId)
   }
 `;
 export const SearchArtistQueryDocument = gql`
@@ -549,6 +570,22 @@ export function getSdk(
           }),
         "meQuery",
         "query",
+        variables,
+      );
+    },
+    removeFromPlaylistMutation(
+      variables: RemoveFromPlaylistMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<RemoveFromPlaylistMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<RemoveFromPlaylistMutationMutation>(
+            RemoveFromPlaylistMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "removeFromPlaylistMutation",
+        "mutation",
         variables,
       );
     },

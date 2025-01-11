@@ -18,6 +18,7 @@ export const {
   topSongsByArtistQuery,
   similarArtistsQuery,
   searchArtistQuery,
+  removeFromPlaylistMutation,
 } = getSdk(gqlClient)
 
 export const queryClient = new QueryClient({

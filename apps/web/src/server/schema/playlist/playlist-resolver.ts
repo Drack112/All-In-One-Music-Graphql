@@ -289,4 +289,37 @@ export class PlaylistResolver {
 
     return true
   }
+
+  @Mutation(() => Boolean)
+  async removeFromPlaylist(
+    @Arg('playlistId', () => ID) playlistId: string,
+    @Arg('songId', () => ID) songId: string,
+    @Ctx() ctx: Context
+  ): Promise<boolean> {
+    const session = ctx.session
+
+    const { userId } = getTableColumns(Playlists)
+
+    const [playlist] = await db
+      .select({
+        userId,
+      })
+      .from(Playlists)
+      .where(eq(Playlists.id, playlistId))
+
+    if (!session?.user || playlist.userId !== session.user.id) {
+      throw new Error('Unauthorized')
+    }
+
+    await db
+      .delete(PlaylistsToSongs)
+      .where(
+        and(
+          eq(PlaylistsToSongs.playlistId, playlistId),
+          eq(PlaylistsToSongs.songId, songId)
+        )
+      )
+
+    return true
+  }
 }
