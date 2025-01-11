@@ -20,6 +20,7 @@ export const {
   searchArtistQuery,
   removeFromPlaylistMutation,
   importPlaylistMutation,
+  getLyricsQuery,
 } = getSdk(gqlClient)
 
 export const queryClient = new QueryClient({

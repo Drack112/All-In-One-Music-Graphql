@@ -1,8 +1,9 @@
 import { Arg, Query, Resolver } from 'type-graphql'
-import { Song, SongVideo } from './song'
+import { Song, SongLyrics, SongVideo } from './song'
 import { CacheControl } from '../cache-control'
 import { invidious } from '@/server/modules/invidious'
 import { isEmpty } from 'lodash'
+import { getLyrics } from '@/server/modules/lyrics'
 
 @Resolver(Song)
 export class SongResolver {
@@ -24,5 +25,31 @@ export class SongResolver {
     }
 
     return video.slice(0, 5)
+  }
+
+  @Query(() => SongLyrics)
+  @CacheControl({ maxAge: 60 * 60 * 24 })
+  async getLyrics(
+    @Arg('artist') artist: string,
+    @Arg('song') song: string
+  ): Promise<SongLyrics> {
+    const lyrics = await getLyrics({
+      artist,
+      title: song,
+    })
+
+    if (isEmpty(lyrics)) {
+      return {
+        artist,
+        title: song,
+        lyrics: '',
+      }
+    }
+
+    return {
+      artist,
+      title: song,
+      lyrics,
+    }
   }
 }

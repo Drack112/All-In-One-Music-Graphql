@@ -73,3 +73,15 @@ export class SongInput {
   @Field({ nullable: true })
   songUrl?: string
 }
+
+@ObjectType('songLyrics')
+export class SongLyrics {
+  @Field()
+  title: string
+
+  @Field()
+  artist: string
+
+  @Field()
+  lyrics?: string
+}

@@ -74,6 +74,7 @@ export type MutationUpdateUserArgs = {
 
 export type Query = {
   __typename?: "Query";
+  getLyrics: SongLyrics;
   getVideoInfo: Array<SongVideo>;
   me: User;
   playlist: Playlist;
@@ -81,6 +82,11 @@ export type Query = {
   similarArtists: Array<Artist>;
   topSongsByArtist: Array<Song>;
   userPlaylists: Array<Playlist>;
+};
+
+export type QueryGetLyricsArgs = {
+  artist: Scalars["String"]["input"];
+  song: Scalars["String"]["input"];
 };
 
 export type QueryGetVideoInfoArgs = {
@@ -161,6 +167,13 @@ export type SongInput = {
   title: Scalars["String"]["input"];
 };
 
+export type SongLyrics = {
+  __typename?: "songLyrics";
+  artist: Scalars["String"]["output"];
+  lyrics: Scalars["String"]["output"];
+  title: Scalars["String"]["output"];
+};
+
 export type SongVideo = {
   __typename?: "songVideo";
   artist: Scalars["String"]["output"];
@@ -223,6 +236,21 @@ export type AddToPlaylistMutationMutationVariables = Exact<{
 export type AddToPlaylistMutationMutation = {
   __typename?: "Mutation";
   addToPlaylist: boolean;
+};
+
+export type GetLyricsQueryQueryVariables = Exact<{
+  artist: Scalars["String"]["input"];
+  song: Scalars["String"]["input"];
+}>;
+
+export type GetLyricsQueryQuery = {
+  __typename?: "Query";
+  getLyrics: {
+    __typename: "songLyrics";
+    artist: string;
+    lyrics: string;
+    title: string;
+  };
 };
 
 export type GetVideoInfoQueryQueryVariables = Exact<{
@@ -402,6 +430,16 @@ export const AddToPlaylistMutationDocument = gql`
     addToPlaylist(playlistId: $playlistId, songIds: $songIds, songs: $songs)
   }
 `;
+export const GetLyricsQueryDocument = gql`
+  query getLyricsQuery($artist: String!, $song: String!) {
+    getLyrics(artist: $artist, song: $song) {
+      artist
+      lyrics
+      title
+      __typename
+    }
+  }
+`;
 export const GetVideoInfoQueryDocument = gql`
   query getVideoInfoQuery($query: String!) {
     getVideoInfo(query: $query) {
@@ -571,6 +609,22 @@ export function getSdk(
           ),
         "addToPlaylistMutation",
         "mutation",
+        variables,
+      );
+    },
+    getLyricsQuery(
+      variables: GetLyricsQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<GetLyricsQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<GetLyricsQueryQuery>(
+            GetLyricsQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "getLyricsQuery",
+        "query",
         variables,
       );
     },
