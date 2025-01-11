@@ -34,6 +34,7 @@ export type Scalars = {
 export type Mutation = {
   __typename?: "Mutation";
   addToPlaylist: Scalars["Boolean"]["output"];
+  deletePlaylist: Scalars["Boolean"]["output"];
   importPlaylist: Playlist;
   removeFromPlaylist: Scalars["Boolean"]["output"];
   updatePlaylist: Playlist;
@@ -45,6 +46,10 @@ export type MutationAddToPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
   songIds: InputMaybe<Array<Scalars["ID"]["input"]>>;
   songs: InputMaybe<Array<SongInput>>;
+};
+
+export type MutationDeletePlaylistArgs = {
+  playlistId: Scalars["ID"]["input"];
 };
 
 export type MutationImportPlaylistArgs = {
@@ -281,6 +286,15 @@ export type AddToPlaylistMutationMutationVariables = Exact<{
 export type AddToPlaylistMutationMutation = {
   __typename?: "Mutation";
   addToPlaylist: boolean;
+};
+
+export type DeletePlaylistMutationMutationVariables = Exact<{
+  playlistId: Scalars["ID"]["input"];
+}>;
+
+export type DeletePlaylistMutationMutation = {
+  __typename?: "Mutation";
+  deletePlaylist: boolean;
 };
 
 export type GetAlbumBySongQueryQueryVariables = Exact<{
@@ -525,6 +539,11 @@ export const AddToPlaylistMutationDocument = gql`
     addToPlaylist(playlistId: $playlistId, songIds: $songIds, songs: $songs)
   }
 `;
+export const DeletePlaylistMutationDocument = gql`
+  mutation deletePlaylistMutation($playlistId: ID!) {
+    deletePlaylist(playlistId: $playlistId)
+  }
+`;
 export const GetAlbumBySongQueryDocument = gql`
   query getAlbumBySongQuery($artist: String!, $song: String!) {
     getAlbumBySong(artist: $artist, song: $song) {
@@ -739,6 +758,22 @@ export function getSdk(
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "addToPlaylistMutation",
+        "mutation",
+        variables,
+      );
+    },
+    deletePlaylistMutation(
+      variables: DeletePlaylistMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<DeletePlaylistMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<DeletePlaylistMutationMutation>(
+            DeletePlaylistMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "deletePlaylistMutation",
         "mutation",
         variables,
       );
