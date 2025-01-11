@@ -1,9 +1,9 @@
 import { AnimatedBeam } from '@/components/beam/animated'
 import { Gradient } from '@/components/gradient'
 import { SearchTrigger } from '@/components/search/trigger'
-
 import { Seo } from '@/components/seo'
 import { TheaterMode } from '@/components/theater-mode'
+import { VideoPlayerPortalContainer } from '@/components/video-player'
 import { useGlobalSearchStore } from '@/store/use-global-search'
 import { useLayoutState } from '@/store/use-layout-state'
 
@@ -40,6 +40,7 @@ export const HomePage = () => {
           </div>
           <AnimatedBeam className='mx-auto mt-10 h-2/5 md:pl-8 lg:mt-0' />
         </div>
+        <VideoPlayerPortalContainer className='hidden' position='home-page' />
       </>
     )
   }

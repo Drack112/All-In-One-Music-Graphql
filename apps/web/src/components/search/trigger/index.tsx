@@ -1,11 +1,11 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon } from '@heroicons/react/24/solid'
 
-interface TriggerProps {
+interface Props {
   className?: string
   onClick?: () => void
 }
 
-export const SearchTrigger = (props: TriggerProps) => {
+export const SearchTrigger = (props: Props) => {
   return (
     <div className='pointer-events-auto relative contents rounded-xl'>
       <button

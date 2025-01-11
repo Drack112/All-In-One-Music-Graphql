@@ -28,10 +28,10 @@ import { usePlayerState } from '@/store/use-player'
 import { getError } from '@/utils/get-error'
 import { getMainArtist, splitArtist } from '@/utils/song-titles.helper'
 import { AudioWave } from '../icons'
-import { AddToPlaylistModal } from '../menu/playlist'
 import { Toast } from '../toast'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { AddToPlaylistModal } from '../modals/playlist/add'
 
 interface SongProps {
   song: string

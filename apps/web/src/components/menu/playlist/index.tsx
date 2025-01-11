@@ -1,22 +1,186 @@
-import { addToPlaylistMutation, queryClient, userPlaylistsQuery } from '@/api'
-import { Button } from '@/components/button'
-import { PlayableSong } from '@/types'
+import { useDroppable } from '@dnd-kit/core'
+import {
+  EllipsisHorizontalIcon,
+  LinkIcon,
+  PencilIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline'
+import { PlusIcon } from '@heroicons/react/24/solid'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns'
+import type { ClientError } from 'graphql-request'
+import { head, isEmpty } from 'lodash'
+import dynamic from 'next/dynamic'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import SimpleBar from 'simplebar-react'
-import { format } from 'date-fns'
+import { toast } from 'sonner'
 import { twMerge } from 'tailwind-merge'
-import { getError } from '@/utils/get-error'
-import { ClientError } from 'graphql-request'
 
-interface AddToPlaylistModalProps {
-  song: PlayableSong
-  onActionEnd?: (data: { playlistName: string; playlistId: string }) => void
+import {
+  createPlaylistMutation,
+  deletePlaylistMutation,
+  userPlaylistsQuery,
+} from '@/api'
+import { useModalStore } from '@/store/use-modal'
+import { Toast } from '@/components/toast'
+import { ImportPlaylistModal } from '@/components/modals/playlist/import'
+import { WavesLoader } from '@/components/loader'
+import { EditPlaylistDetailsModal } from '@/components/modals/playlist/edit'
+
+const DynamicDropdown = dynamic(() => import('../../dropdown'), {
+  ssr: false,
+})
+
+interface PlaylistMenuItemProps {
+  playlist: {
+    id: string
+    name: string
+    createdAt?: string | null
+  }
 }
 
-export const AddToPlaylistModal = (props: AddToPlaylistModalProps) => {
-  const { song, onActionEnd } = props
+export const PlaylistMenuItem = (props: PlaylistMenuItemProps) => {
+  const { playlist } = props
 
+  const { isOver, setNodeRef } = useDroppable({
+    id: playlist.id,
+    data: {
+      name: playlist.name,
+      id: playlist.id,
+    },
+  })
+
+  const session = useSession()
+
+  const userPlaylists = useQuery({
+    queryKey: ['userPlaylists', session.data?.user?.id],
+    queryFn: () => userPlaylistsQuery(),
+    enabled: false,
+    staleTime: Infinity,
+  })
+
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const isActive = pathname === `/playlist/${playlist.id}`
+
+  const deletePlaylist = useMutation({
+    mutationKey: ['deletePlaylist'],
+    mutationFn: (playlistId: string) => deletePlaylistMutation({ playlistId }),
+    onError: (err: ClientError) => err,
+  })
+
+  const openModal = useModalStore((state) => state.openModal)
+  const closeModal = useModalStore((state) => state.closeModal)
+
+  return (
+    <div
+      key={playlist.id}
+      className={twMerge(
+        `bg-surface-800 rounded-lg text-left flex items-center transition-colors`,
+        isOver &&
+          'text-primary-500 bg-surface-900 border-primary-500 border border-solid'
+      )}
+      ref={setNodeRef}
+    >
+      <Link
+        className='relative grow px-3 py-1'
+        href={`/playlist/${playlist.id}`}
+      >
+        {isActive ? (
+          <div className='absolute left-0 top-0 h-full w-1 rounded-l-lg bg-primary-500' />
+        ) : null}
+        <p>{playlist.name}</p>
+        <p className='mt-0.5 text-xs text-gray-400'>
+          {format(new Date(Number(playlist.createdAt!)), 'MM/dd/yyyy')}
+        </p>
+      </Link>
+      <DynamicDropdown
+        direction='right'
+        className='ml-auto self-stretch'
+        triggerClassName={twMerge(
+          'hover:text-primary-500 h-full transition-colors px-3',
+          isActive && 'text-primary-500'
+        )}
+        menuLabel={<EllipsisHorizontalIcon className='h-5 shrink-0' />}
+        menuItems={[
+          {
+            label: 'Edit details',
+            icon: <PencilIcon className='mr-2 h-3.5 shrink-0' />,
+            onClick: () => {
+              openModal({
+                content: (
+                  <EditPlaylistDetailsModal
+                    playlistId={playlist.id}
+                    playlistName={playlist.name}
+                    onActionEnd={() => {
+                      toast.custom(
+                        () => <Toast message='✔ Playlist updated' />,
+                        { duration: 3000 }
+                      )
+                      closeModal()
+                    }}
+                  />
+                ),
+                title: 'Edit playlist',
+              })
+            },
+          },
+          {
+            label: 'Import into playlist',
+            icon: <LinkIcon className='mr-2 h-3.5 shrink-0' />,
+            onClick: () => {
+              openModal({
+                content: (
+                  <ImportPlaylistModal
+                    playlistId={playlist.id}
+                    onImportEnd={() => {
+                      toast.custom(
+                        () => <Toast message='✔ Playlist imported' />,
+                        { duration: 3000 }
+                      )
+                      closeModal()
+                    }}
+                  />
+                ),
+                title: `Import into ${playlist.name}`,
+              })
+            },
+          },
+          {
+            label: 'Delete',
+            icon: <TrashIcon className='mr-2 h-3.5 shrink-0' />,
+            onClick: async () => {
+              await deletePlaylist.mutateAsync(playlist.id)
+              const updatedPlaylists = await userPlaylists.refetch()
+
+              toast.custom(() => <Toast message='✔ Playlist deleted' />, {
+                duration: 3000,
+              })
+
+              if (isActive) {
+                if (!isEmpty(updatedPlaylists.data?.userPlaylists)) {
+                  await router.replace(
+                    `/playlist/${head(updatedPlaylists.data?.userPlaylists)?.id}`,
+                    undefined,
+                    { shallow: true }
+                  )
+                } else {
+                  await router.replace('/', undefined, { shallow: true })
+                }
+              }
+            },
+          },
+        ]}
+      />
+    </div>
+  )
+}
+
+export const PlaylistMenu = () => {
   const session = useSession()
 
   const userPlaylists = useQuery({
@@ -26,88 +190,102 @@ export const AddToPlaylistModal = (props: AddToPlaylistModalProps) => {
     staleTime: Infinity,
   })
 
-  const addToPlaylist = useMutation({
-    mutationKey: ['addToPlaylist'],
-    mutationFn: addToPlaylistMutation,
-  })
+  const openModal = useModalStore((state) => state.openModal)
+  const closeModal = useModalStore((state) => state.closeModal)
 
-  const confirmAddToPlaylist = async ({
-    playlistId,
-    playlistName,
-  }: {
-    playlistId: string
-    playlistName: string
-  }) => {
-    try {
-      await addToPlaylist.mutateAsync({
-        playlistId: playlistId,
-        songIds: song.id ? [song.id] : null,
-        songs: song.id
-          ? null
-          : [
-              {
-                album: '',
-                artist: song.artist,
-                title: song.title,
-                songUrl: song.songUrl || null,
-              },
-            ],
-      })
+  const hasPlaylists = !isEmpty(userPlaylists.data?.userPlaylists)
 
-      await queryClient.invalidateQueries({
-        queryKey: ['userPlaylist', playlistId],
-      })
-
-      onActionEnd?.({ playlistName, playlistId })
-    } catch (error) {
-      void 0
+  const renderPlaylists = () => {
+    if (session.status !== 'authenticated') {
+      return (
+        <div className='flex h-full items-center'>
+          <p className='text-balance text-center text-sm text-gray-300'>
+            Sign in to see your playlists
+          </p>
+        </div>
+      )
     }
-  }
 
-  return (
-    <div className='w-96 max-w-full p-8'>
-      <div className='flex flex-col gap-2'>
-        <p className='mb-2 text-center text-base'>
-          {song.artist} - {song.title}
-        </p>
-        <p className='text-sm text-neutral-400'>
-          Click on playlist to add one song
-        </p>
+    if (userPlaylists.isLoading) {
+      return (
+        <div className='flex h-full items-center justify-center'>
+          <WavesLoader className='h-5' />
+        </div>
+      )
+    }
+
+    if (hasPlaylists) {
+      return (
         <SimpleBar
-          className='-mx-3 max-h-[50svh] overflow-y-auto px-3'
+          className={twMerge(
+            `overflow-auto mt-8 [&.simplebar-scrollable-y]:pr-4 h-full`
+          )}
           classNames={{
-            contentEl: 'flex flex-col gap-2',
             scrollbar: 'bg-primary-500 w-1 rounded',
           }}
         >
-          {userPlaylists.data?.userPlaylists.map((playlist) => (
-            <Button
-              key={playlist.id}
-              onClick={() =>
-                confirmAddToPlaylist({
-                  playlistId: playlist.id,
-                  playlistName: playlist.name,
-                })
-              }
-              className='flex w-full grow flex-col gap-1 rounded-lg bg-surface-800 px-3 py-1 text-left transition-colors'
-              variant='ghost'
-            >
-              <p className='text-base'>{playlist.name}</p>
-              <p className='mt-0.5 text-xs text-gray-400'>
-                {format(new Date(Number(playlist.createdAt!)), 'MM/dd/yyyy')}
-              </p>
-            </Button>
-          ))}
+          <div className='flex flex-col gap-2'>
+            {userPlaylists.data?.userPlaylists.map((playlist) => (
+              <PlaylistMenuItem key={playlist.id} playlist={playlist} />
+            ))}
+          </div>
         </SimpleBar>
+      )
+    }
+
+    return (
+      <div className='flex h-full items-center'>
+        <p className='text-balance text-center text-sm text-gray-300'>
+          You have no playlists. Create one!
+        </p>
       </div>
-      <span
-        className={twMerge(
-          'text-primary-500 text-sm invisible',
-          addToPlaylist.error && 'visible'
+    )
+  }
+
+  return (
+    <div className='flex h-full flex-col px-4 py-7'>
+      <div className='flex justify-between'>
+        <h1 className='text-xl font-semibold text-gray-300'>Your playlists</h1>
+        {session.status === 'authenticated' && (
+          <DynamicDropdown
+            direction='right'
+            menuLabel={
+              <PlusIcon className='size-6 shrink-0 transition-colors hover:text-primary-500' />
+            }
+            menuItems={[
+              {
+                label: 'Create playlist',
+                icon: <PlusIcon className='mr-2 h-3.5 shrink-0' />,
+                onClick: async () => {
+                  await createPlaylistMutation()
+                  await userPlaylists.refetch()
+                },
+              },
+              {
+                label: 'Import from URL',
+                icon: <LinkIcon className='mr-2 h-3.5 shrink-0' />,
+                onClick: () => {
+                  openModal({
+                    content: (
+                      <ImportPlaylistModal
+                        onImportEnd={() => {
+                          toast.custom(
+                            () => <Toast message='✔ Playlist imported' />,
+                            { duration: 3000 }
+                          )
+                          closeModal()
+                        }}
+                      />
+                    ),
+                    title: 'Import playlist',
+                  })
+                },
+              },
+            ]}
+          />
         )}
-      >
-        Error: {getError(addToPlaylist.error as ClientError | null)}
-      </span>
+      </div>
+      {renderPlaylists()}
     </div>
   )
 }

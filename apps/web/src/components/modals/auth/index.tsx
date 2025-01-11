@@ -6,10 +6,9 @@ import { useState } from 'react'
 import type { SubmitHandler } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 import { twMerge } from 'tailwind-merge'
-
-import { GithubIcon } from '../../icons'
-import { Input } from '../../input'
-import { WavesLoader } from '../../loader'
+import { WavesLoader } from '@/components/loader'
+import { Input } from '@/components/input'
+import { GithubIcon } from '@/components/icons'
 
 type Inputs = {
   username: string
@@ -33,7 +32,7 @@ export const AuthModal = (props: AuthModalProps) => {
     mutationFn: (data: Inputs) =>
       signIn(providers.data?.credentials.id, {
         ...data,
-        callbackUrl: pathname.includes('/auth') ? '/' : pathname || '/',
+        callbackUrl: pathname?.includes('/auth') ? '/' : pathname || '/',
         redirect: false,
         action: authType,
       }),
@@ -174,7 +173,9 @@ export const AuthModal = (props: AuthModalProps) => {
             key={providers.data?.github.id}
             onClick={() =>
               signIn(providers.data?.github.id, {
-                callbackUrl: pathname.includes('/auth') ? '/' : pathname || '/',
+                callbackUrl: pathname?.includes('/auth')
+                  ? '/'
+                  : pathname || '/',
               })
             }
             className={twMerge(

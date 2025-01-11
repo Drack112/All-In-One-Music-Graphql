@@ -5,12 +5,11 @@ import {
   Transition,
   TransitionChild,
 } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 import { Fragment } from 'react'
 
 import { useModalStore } from '@/store/use-modal'
-
-import { Button } from '../components/button'
+import { Button } from '@/components/button'
 
 export function ModalProvider() {
   const isOpen = useModalStore((state) => state.isOpen)
