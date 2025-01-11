@@ -51,11 +51,16 @@ export type Query = {
   __typename?: "Query";
   getVideoInfo: Array<SongVideo>;
   me: User;
+  playlist: Playlist;
   userPlaylists: Array<Playlist>;
 };
 
 export type QueryGetVideoInfoArgs = {
   query: Scalars["String"]["input"];
+};
+
+export type QueryPlaylistArgs = {
+  playlistId: Scalars["ID"]["input"];
 };
 
 export type Account = {
@@ -191,6 +196,30 @@ export type UpdateUserMutationMutation = {
   };
 };
 
+export type PlaylistQueryQueryVariables = Exact<{
+  playlistId: Scalars["ID"]["input"];
+}>;
+
+export type PlaylistQueryQuery = {
+  __typename?: "Query";
+  playlist: {
+    __typename?: "playlist";
+    id: string;
+    name: string;
+    type: number | null;
+    songs: Array<{
+      __typename?: "userSong";
+      id: string;
+      title: string;
+      artist: string;
+      songUrl: string | null;
+      rank: string | null;
+      createdAt: string | null;
+    }> | null;
+    user: { __typename?: "user"; id: string; name: string | null } | null;
+  };
+};
+
 export type UserPlaylistsQueryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type UserPlaylistsQueryQuery = {
@@ -249,6 +278,27 @@ export const UpdateUserMutationDocument = gql`
       email
       updatedAt
       __typename
+    }
+  }
+`;
+export const PlaylistQueryDocument = gql`
+  query playlistQuery($playlistId: ID!) {
+    playlist(playlistId: $playlistId) {
+      id
+      name
+      type
+      songs {
+        id
+        title
+        artist
+        songUrl
+        rank
+        createdAt
+      }
+      user {
+        id
+        name
+      }
     }
   }
 `;
@@ -341,6 +391,21 @@ export function getSdk(
           ),
         "updateUserMutation",
         "mutation",
+        variables,
+      );
+    },
+    playlistQuery(
+      variables: PlaylistQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<PlaylistQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<PlaylistQueryQuery>(PlaylistQueryDocument, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
+        "playlistQuery",
+        "query",
         variables,
       );
     },

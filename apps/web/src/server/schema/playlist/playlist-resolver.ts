@@ -7,7 +7,7 @@ import { LexoRank } from 'lexorank'
 import { and, desc, eq, getTableColumns, inArray } from 'drizzle-orm'
 import { db } from '@/db/db'
 import { getLastRankInPlaylist, Playlist } from './playlist'
-import { Playlists, PlaylistsToSongs, Songs } from '@/db/schema'
+import { Playlists, PlaylistsToSongs, Songs, Users } from '@/db/schema'
 import { SongInput } from '../song/song'
 import { logger } from '@/server/logger'
 
@@ -168,5 +168,51 @@ export class PlaylistResolver {
     }
 
     return true
+  }
+
+  @Query(() => Playlist)
+  async playlist(
+    @Arg('playlistId', () => ID) playlistId: string,
+    @Ctx() ctx: Context
+  ): Promise<Partial<Playlist>> {
+    const session = ctx.session
+
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+
+    const songs = await db
+      .select()
+      .from(Songs)
+      .innerJoin(PlaylistsToSongs, eq(PlaylistsToSongs.songId, Songs.id))
+      .where(eq(PlaylistsToSongs.playlistId, playlistId))
+
+    const [userPlaylist] = await db
+      .select()
+      .from(Playlists)
+      .innerJoin(Users, eq(Playlists.userId, Users.id))
+      .where(eq(Playlists.id, playlistId))
+
+    if (!userPlaylist) {
+      throw new Error('Playlist not found')
+    }
+
+    return {
+      id: playlistId,
+      name: userPlaylist.playlists.name,
+      type: userPlaylist.playlists.type,
+      user: {
+        id: userPlaylist.users.id,
+        name: userPlaylist.users.name,
+      },
+      songs: songs.map((song) => ({
+        id: song.songs.id,
+        title: song.songs.title,
+        artist: song.songs.artist,
+        songUrl: song.playlistsToSongs.songUrl || undefined,
+        rank: song.playlistsToSongs.rank || undefined,
+        createdAt: song.playlistsToSongs.createdAt,
+      })),
+    }
   }
 }
