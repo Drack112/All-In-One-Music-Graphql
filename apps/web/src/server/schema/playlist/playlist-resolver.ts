@@ -215,4 +215,37 @@ export class PlaylistResolver {
       })),
     }
   }
+
+  @Mutation(() => Playlist)
+  async updatePlaylist(
+    @Arg('playlistId', () => ID) playlistId: string,
+    @Arg('name') name: string,
+    @Ctx() ctx: Context
+  ): Promise<Playlist> {
+    const session = ctx.session
+
+    const { userId } = getTableColumns(Playlists)
+    if (!session?.user) {
+      throw new Error('Unauthorized')
+    }
+
+    const [playlist] = await db
+      .select({ userId })
+      .from(Playlists)
+      .where(eq(Playlists.id, playlistId))
+
+    if (playlist.userId !== session.user.id) {
+      throw new Error('Unauthorized')
+    }
+
+    await db.update(Playlists).set({ name }).where(eq(Playlists.id, playlistId))
+
+    return {
+      id: playlistId,
+      name,
+      user: {
+        id: session.user.id,
+      },
+    }
+  }
 }

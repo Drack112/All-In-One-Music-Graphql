@@ -12,6 +12,8 @@ export const {
   userPlaylistsQuery,
   addToPlaylistMutation,
   getVideoInfoQuery,
+  playlistQuery,
+  updatePlaylistMutation,
 } = getSdk(gqlClient)
 
 export const queryClient = new QueryClient({

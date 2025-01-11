@@ -34,6 +34,7 @@ export type Scalars = {
 export type Mutation = {
   __typename?: "Mutation";
   addToPlaylist: Scalars["Boolean"]["output"];
+  updatePlaylist: Playlist;
   updateUser: UpdateUserOutput;
 };
 
@@ -41,6 +42,11 @@ export type MutationAddToPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
   songIds: InputMaybe<Array<Scalars["ID"]["input"]>>;
   songs: InputMaybe<Array<SongInput>>;
+};
+
+export type MutationUpdatePlaylistArgs = {
+  name: Scalars["String"]["input"];
+  playlistId: Scalars["ID"]["input"];
 };
 
 export type MutationUpdateUserArgs = {
@@ -181,6 +187,16 @@ export type MeQueryQuery = {
   };
 };
 
+export type UpdatePlaylistMutationMutationVariables = Exact<{
+  playlistId: Scalars["ID"]["input"];
+  name: Scalars["String"]["input"];
+}>;
+
+export type UpdatePlaylistMutationMutation = {
+  __typename?: "Mutation";
+  updatePlaylist: { __typename?: "playlist"; id: string; name: string };
+};
+
 export type UpdateUserMutationMutationVariables = Exact<{
   user: UserInput;
 }>;
@@ -267,6 +283,14 @@ export const MeQueryDocument = gql`
         __typename
       }
       __typename
+    }
+  }
+`;
+export const UpdatePlaylistMutationDocument = gql`
+  mutation updatePlaylistMutation($playlistId: ID!, $name: String!) {
+    updatePlaylist(name: $name, playlistId: $playlistId) {
+      id
+      name
     }
   }
 `;
@@ -375,6 +399,22 @@ export function getSdk(
           }),
         "meQuery",
         "query",
+        variables,
+      );
+    },
+    updatePlaylistMutation(
+      variables: UpdatePlaylistMutationMutationVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<UpdatePlaylistMutationMutation> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<UpdatePlaylistMutationMutation>(
+            UpdatePlaylistMutationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "updatePlaylistMutation",
+        "mutation",
         variables,
       );
     },
