@@ -19,7 +19,7 @@ export class SongResolver {
         video.videoThumbnails.find((vt) => vt.quality === 'default')?.url ?? '',
     }))
 
-    if (!isEmpty(video)) {
+    if (isEmpty(video)) {
       throw new Error(`Video not found for query: ${query}`)
     }
 
