@@ -14,3 +14,7 @@ declare module '@auth/core/jwt' {
     id?: string
   }
 }
+
+export type DroppableEntity =
+  | DataRef<{ name: string; id: string }>
+  | DataRef<{ items: PlayableSong[] } & SortableData>
