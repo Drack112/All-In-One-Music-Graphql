@@ -65,6 +65,7 @@ export type Query = {
   getVideoInfo: Array<SongVideo>;
   me: User;
   playlist: Playlist;
+  searchArtists: Array<Scalars["String"]["output"]>;
   similarArtists: Array<Artist>;
   topSongsByArtist: Array<Song>;
   userPlaylists: Array<Playlist>;
@@ -76,6 +77,11 @@ export type QueryGetVideoInfoArgs = {
 
 export type QueryPlaylistArgs = {
   playlistId: Scalars["ID"]["input"];
+};
+
+export type QuerySearchArtistsArgs = {
+  artist: Scalars["String"]["input"];
+  limit?: Scalars["Int"]["input"];
 };
 
 export type QuerySimilarArtistsArgs = {
@@ -239,6 +245,15 @@ export type MeQueryQuery = {
   };
 };
 
+export type SearchArtistQueryQueryVariables = Exact<{
+  artist: Scalars["String"]["input"];
+}>;
+
+export type SearchArtistQueryQuery = {
+  __typename?: "Query";
+  searchArtists: Array<string>;
+};
+
 export type SimilarArtistsQueryQueryVariables = Exact<{
   artist: Scalars["String"]["input"];
   limit: InputMaybe<Scalars["Int"]["input"]>;
@@ -377,6 +392,11 @@ export const MeQueryDocument = gql`
       }
       __typename
     }
+  }
+`;
+export const SearchArtistQueryDocument = gql`
+  query searchArtistQuery($artist: String!) {
+    searchArtists(artist: $artist)
   }
 `;
 export const SimilarArtistsQueryDocument = gql`
@@ -528,6 +548,22 @@ export function getSdk(
             ...wrappedRequestHeaders,
           }),
         "meQuery",
+        "query",
+        variables,
+      );
+    },
+    searchArtistQuery(
+      variables: SearchArtistQueryQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<SearchArtistQueryQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<SearchArtistQueryQuery>(
+            SearchArtistQueryDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "searchArtistQuery",
         "query",
         variables,
       );

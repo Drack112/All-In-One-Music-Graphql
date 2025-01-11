@@ -85,4 +85,15 @@ export class ArtistResolver {
 
     return similarArtist
   }
+
+  @Query(() => [String])
+  async searchArtists(
+    @Arg('artist') artist: string,
+    @Arg('limit', () => Int, { defaultValue: 10 }) limit: number
+  ): Promise<string[]> {
+    const searchArtistResponse = await lastFM.searchArtist({ artist, limit })
+    const artists = searchArtistResponse.data.results?.artistmatches?.artist
+
+    return artists?.map((artist) => artist.name) || []
+  }
 }
