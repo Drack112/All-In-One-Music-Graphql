@@ -1,11 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore-next-line
 
-import { getLyrics as getLyricsRequest } from 'genius-lyrics-api'
-
+import { Client } from 'genius-lyrics'
 import { logger } from '@/server/logger'
 
 import type { GetLyricsOptions } from './types'
+
+const api = new Client(process.env.GENIUS_ACCESS_TOKEN!)
 
 const getLyrics = async (args: Pick<GetLyricsOptions, 'artist' | 'title'>) => {
   const [title, artist] = `${args.title}▲${args.artist}`
@@ -20,15 +21,8 @@ const getLyrics = async (args: Pick<GetLyricsOptions, 'artist' | 'title'>) => {
 
   logger.info(`Fetching lyrics for ${title} by ${artist}`)
 
-  return getLyricsRequest({
-    ...args,
-    title,
-    artist,
-    apiKey: process.env.GENIUS_ACCESS_TOKEN!,
-    optimizeQuery: false,
-    authHeader: true,
-    reverseProxy: process.env.PROXY,
-  } satisfies GetLyricsOptions) as Promise<string>
+  const response = await api.songs.search(`${title} ${artist}`)
+  return await response[0].lyrics()
 }
 
 export { getLyrics }
