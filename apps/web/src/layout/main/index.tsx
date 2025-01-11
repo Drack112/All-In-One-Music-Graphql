@@ -5,6 +5,7 @@ import { Menu } from '@/components/menu'
 import { ModalProvider } from '@/providers/modal-provider'
 import { useLayoutState } from '@/store/use-layout-state'
 import { AddToPlaylistDndContext } from '@/hooks/add-to-playlist'
+import { FooterPlayer } from '@/components/player'
 
 const Attribution = () => {
   const theaterMode = useLayoutState((state) => state.theaterMode)
@@ -35,16 +36,17 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     <>
       <div className='relative flex w-full grow flex-col flex-wrap py-4 md:flex-row md:flex-nowrap md:py-0'>
         <AddToPlaylistDndContext>
+          <Menu />
           <main role='main' className='w-full grow'>
-            <Menu />
             {children}
           </main>
-          <Attribution />
-          <div className='h-28' />
-          <Toaster />
-          <ModalProvider />
         </AddToPlaylistDndContext>
       </div>
+      <Attribution />
+      <div className='h-28' />
+      <FooterPlayer />
+      <Toaster />
+      <ModalProvider />
     </>
   )
 }
