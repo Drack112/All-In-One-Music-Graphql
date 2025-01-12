@@ -2,10 +2,8 @@
 // @ts-ignore-next-line
 
 import { logger } from '@/server/logger'
-
 import type { GetLyricsOptions } from './types'
-
-import lyricsFinder from '@jeve/lyrics-finder'
+import lyrics from '@faouzkk/lyrics-finder'
 
 const getLyrics = async (args: Pick<GetLyricsOptions, 'artist' | 'title'>) => {
   const [title, artist] = `${args.title}▲${args.artist}`
@@ -20,7 +18,9 @@ const getLyrics = async (args: Pick<GetLyricsOptions, 'artist' | 'title'>) => {
 
   logger.info(`Fetching lyrics for ${title} by ${artist}`)
 
-  return await lyricsFinder.LyricsFinder(`${title} ${artist}`)
+  const response = await lyrics(`${artist} ${title}`)
+  console.log(response)
+  return response
 }
 
 export { getLyrics }
