@@ -43,6 +43,7 @@
     "@types/argon2": "^0.15.4",
     "@upstash/redis": "^1.31.6",
     "argon2": "^0.41.1",
+    "async-g-i-s": "^1.5.5",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.7.2",
     "class-validator": "^0.14.1",
