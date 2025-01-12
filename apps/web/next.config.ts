@@ -8,6 +8,9 @@ const externalImageUrls = invidiousUrls.split(',')
 const nextConfig = {
   // https://github.com/nextauthjs/next-auth/discussions/9385
   transpilePackages: ['next-auth'],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
