@@ -11,24 +11,12 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'www.theaudiodb.com',
-      },
-      {
         protocol: 'https',
-        hostname: 'www.theaudiodb.com',
+        hostname: '**',
       },
       {
         protocol: 'http',
-        hostname: 'r2.theaudiodb.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'r2.theaudiodb.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lastfm.freetls.fastly.net',
+        hostname: '**',
       },
       ...externalImageUrls.map((url) => {
         const { protocol, hostname } = new URL(url)
