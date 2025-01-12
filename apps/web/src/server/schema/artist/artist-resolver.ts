@@ -7,6 +7,37 @@ import { audioDB } from '@/server/modules/audiodb'
 import { compact, find, isEmpty, map, orderBy, toLower } from 'lodash'
 import { Album } from '../album/entities/album'
 import { getCoverImage } from '@/utils/get-cover-image'
+import { logger } from '@/server/logger'
+import { cache } from '@/server/cache'
+import gis from 'async-g-i-s'
+
+async function getImage(query: string, index = 0) {
+  const cacheKey = `${query}-${index}`
+  const cachedResult = cache.get(cacheKey)
+
+  if (cachedResult) {
+    return cachedResult
+  }
+
+  const results = await gis(query, { query: { safe: 'on' } })
+  logger.info(`Found ${results.length} results for ${query}.`)
+
+  const filteredResults = results.filter(
+    (result) =>
+      (result.url.startsWith('https') || result.url.startsWith('http')) &&
+      !result.url.includes('www') &&
+      /\.(jpg|jpeg|png)$/i.test(result.url)
+  )
+  const result = filteredResults[Math.min(index, filteredResults.length - 1)]
+
+  if (result?.url) {
+    const cleanUrl = result.url.replace(/&w=\d+&q=\d+/g, '')
+    cache.set(cacheKey, cleanUrl)
+    return cleanUrl
+  }
+
+  return undefined
+}
 
 @Resolver(Artist)
 export class ArtistResolver {
@@ -51,10 +82,17 @@ export class ArtistResolver {
         return undefined
       }
 
+      const bannerImage = await getImage(
+        `${fallbackArtist.name} artist`,
+        Math.floor(Math.random() * 3)
+      )
+
       return {
         name: fallbackArtist.name,
         biography: fallbackArtist.bio.summary,
-        genre: fallbackArtist.tags.tag?.map((tag) => tag.name).join(', '),
+        // genre: fallbackArtist.tags.tag?.map((tag) => tag.name).join(', '),
+        genre: '',
+        bannerImage: bannerImage,
       }
     }
 
@@ -119,6 +157,11 @@ export class ArtistResolver {
 
         const similarArtist = getArtistResponse.data.artists?.[0]
 
+        const bannerImage = await getImage(
+          `${similarArtistName.name} artist`,
+          Math.floor(Math.random() * 3)
+        )
+
         return similarArtist
           ? {
               name: similarArtist.strArtist,
@@ -139,7 +182,11 @@ export class ArtistResolver {
                 : undefined,
               disbandedYear: similarArtist.intDiedYear?.toString(),
             }
-          : similarArtistName
+          : {
+              name: similarArtistName.name,
+              bannerImage,
+              image: bannerImage,
+            }
       })
     )
 
@@ -165,15 +212,11 @@ export class ArtistResolver {
     limit: number,
     @Arg('page', () => Int, { nullable: true }) page?: number
   ): Promise<Album[]> {
-    const getAlbumsByArtist = await audioDB.getAlbumsByArtist({ artist })
-
-    const baseAlbums = getAlbumsByArtist.data.album
-
     const getTopAlbums = await lastFM.getTopAlbums({ artist, limit, page })
 
     const fallbackAlbums = getTopAlbums.data.topalbums?.album
 
-    if (!fallbackAlbums && !baseAlbums) {
+    if (!fallbackAlbums) {
       return []
     }
 
@@ -190,26 +233,16 @@ export class ArtistResolver {
             return undefined
           }
 
-          const matchedAlbum = find(
-            baseAlbums,
-            (baseAlbum) =>
-              toLower(baseAlbum?.strAlbum) == toLower(fallbackAlbum?.name)
-          )
-
-          const coverImage =
-            matchedAlbum?.strAlbumThumb || getCoverImage(fallbackAlbum?.image)
-
-          const description =
-            matchedAlbum?.strDescription || matchedAlbum?.strDescriptionEN // || albumInfo?.wiki?.content
+          const coverImage = getCoverImage(fallbackAlbum?.image)
 
           return {
             artist: albumArtistName,
             coverImage,
-            description,
+            description: '', // No description available from lastFM
             name: fallbackAlbum.name,
-            genre: matchedAlbum?.strGenre,
-            year: matchedAlbum?.intYearReleased.toString(),
-            albumId: matchedAlbum?.idAlbum,
+            genre: '', // No genre available from lastFM
+            year: '', // No year available from lastFM
+            albumId: '', // No albumId available from lastFM
           } satisfies Album
         } catch {
           return undefined
@@ -217,29 +250,8 @@ export class ArtistResolver {
       })
     )
 
-    const missingAlbums = (baseAlbums ?? [])
-      .filter(
-        (baseAlbum) =>
-          !albums.find(
-            (album) =>
-              album.name.toLowerCase() === baseAlbum.strAlbum.toLowerCase()
-          )
-      )
-      .map(
-        (baseAlbum) =>
-          ({
-            artist: baseAlbum.strArtist,
-            coverImage: baseAlbum.strAlbumThumb,
-            description: baseAlbum.strDescription,
-            name: baseAlbum.strAlbum,
-            genre: baseAlbum.strGenre,
-            year: baseAlbum.intYearReleased.toString(),
-            albumId: baseAlbum.idAlbum,
-          }) satisfies Album
-      )
-
     const albumsSorted = orderBy(
-      albums.concat(missingAlbums),
+      albums,
       [
         (item) => (item.year ? Number(item.year) : 0),
         (item) => (item.coverImage?.length ? 1 : 2),
