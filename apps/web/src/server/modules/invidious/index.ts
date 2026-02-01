@@ -2,6 +2,7 @@ import type { AxiosResponse } from 'axios'
 import Axios, { AxiosError } from 'axios'
 
 import { logger } from '@/server/logger'
+import { cache } from '@/server/cache'
 
 import type {
   GetMixesResponse,
@@ -9,13 +10,27 @@ import type {
   GetVideoById,
   GetVideoSearch,
 } from './types'
-import { cache } from '@/server/cache'
 
+/**
+ * CONFIG — tuned for Vercel Serverless
+ */
+const REQUEST_TIMEOUT = 3000 // 3s per request
+const MAX_ATTEMPTS = 3 // max instances per call
+
+/**
+ * Utils
+ */
 const getEndpoint = (baseUrl: string, method: string) =>
   `${baseUrl}/api/v1/${method}`
 
-export const invidiousUrls =
-  process.env.NEXT_PUBLIC_INVIDIOUS_URLS?.split(',') ?? []
+const shuffle = <T>(array: T[]): T[] =>
+  [...array].sort(() => Math.random() - 0.5)
+
+/**
+ * Invidious instances
+ */
+export const invidiousUrls: string[] =
+  process.env.NEXT_PUBLIC_INVIDIOUS_URLS?.split(',').filter(Boolean) ?? []
 
 type InvidiousMethods =
   | `videos/${string}`
@@ -23,65 +38,81 @@ type InvidiousMethods =
   | `mixes/RD${string}`
   | `playlists/${string}`
 
-const invidious = async <T>(method: InvidiousMethods) => {
-  let response = {} as AxiosResponse<T>
+/**
+ * Core request function
+ */
+const invidious = async <T>(
+  method: InvidiousMethods
+): Promise<AxiosResponse<T>> => {
+  if (!invidiousUrls.length) {
+    throw new Error('No Invidious URLs configured')
+  }
 
-  for (const invidiousUrl of invidiousUrls) {
+  const urls = shuffle(invidiousUrls)
+  let attempts = 0
+  let lastError: unknown = null
+
+  for (const invidiousUrl of urls) {
+    if (attempts >= MAX_ATTEMPTS) break
+    attempts++
+
     const cacheKey = `rateLimit:${invidiousUrl}`
     if (cache.has(cacheKey)) continue
 
     try {
-      response = await Axios.get<T>(getEndpoint(invidiousUrl, method), {
-        timeout: 15000,
-      })
+      const response = await Axios.get<T>(
+        getEndpoint(invidiousUrl, method),
+        { timeout: REQUEST_TIMEOUT }
+      )
 
-      if (response.headers['content-type'] === 'text/html') {
-        throw new Error('Bad Response')
+      const contentType = String(response.headers['content-type'] ?? '')
+
+      if (
+        response.status === 200 &&
+        !contentType.includes('text/html')
+      ) {
+        return response
       }
 
-      if (response.status === 200) break
+      throw new Error('Bad response')
     } catch (e) {
+      lastError = e
+
       if (e instanceof AxiosError) {
-        logger.info(
-          `Invidious error: ${invidiousUrl} - ${JSON.stringify(e.response?.data)}`
-        )
-        if (
-          e.response?.data &&
-          ['Too Many Requests', 'Gateway', 'Bad Response', 'API disabled'].some(
-            (error) => String(e.response?.data).includes(error)
-          )
-        ) {
-          cache.set(cacheKey, 'true')
+        logger.info(`Invidious error: ${invidiousUrl}`)
 
-          continue
-        }
-
-        if (
-          e.response?.data &&
-          typeof e.response?.data === 'object' &&
-          'error' in e.response.data &&
-          String(e.response?.data.error).includes('Could not create mix')
-        ) {
-          break
-        }
+        // Mark instance as bad for this runtime
+        cache.set(cacheKey, 'true')
         continue
       }
-      logger.info(`Unexpected Invidious error: ${invidiousUrl} - ${String(e)}`)
+
+      logger.info(
+        `Unexpected Invidious error: ${invidiousUrl} - ${String(e)}`
+      )
+      cache.set(cacheKey, 'true')
       continue
     }
   }
 
-  return response
+  throw new Error(
+    `All Invidious instances failed after ${attempts} attempts`
+  )
 }
 
+/**
+ * Public API
+ */
 invidious.getVideoInfo = (args: { videoId: string }) =>
   invidious<GetVideoById>(`videos/${args.videoId}`)
 
 invidious.getVideos = async (args: { query: string }) => {
   const response = await invidious<GetVideoSearch>(
-    `search?q=${args.query}&sortBy=relevance&page=1`
+    `search?q=${encodeURIComponent(args.query)}&sortBy=relevance&page=1`
   )
-  return { data: response.data.filter((video) => video.type === 'video') }
+
+  return {
+    data: response.data.filter((video) => video.type === 'video'),
+  }
 }
 
 invidious.getPlaylist = (args: { playlistId: string }) =>
